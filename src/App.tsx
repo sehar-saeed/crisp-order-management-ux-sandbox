@@ -3,7 +3,8 @@ import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { NotificationContainer } from './components/NotificationContainer';
 import { LandingPage } from './pages/LandingPage';
 import { IncomingData } from './pages/IncomingData';
-import { OrderBrowse } from './pages/OrderBrowse';
+import { OrderBrowsePage } from './pages/orders/OrderBrowsePage';
+import { OrderDetailPage } from './pages/orders/OrderDetailPage';
 import { SupplierBrowse } from './pages/SupplierBrowse';
 import { SupplierDetail } from './pages/SupplierDetail';
 import { PlaceholderPage } from './pages/PlaceholderPage';
@@ -19,7 +20,8 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/incoming-data" element={<IncomingData />} />
-              <Route path="/orders" element={<OrderBrowse />} />
+              <Route path="/orders" element={<OrderBrowsePage />} />
+              <Route path="/orders/:orderId" element={<OrderDetailPage />} />
               <Route path="/suppliers" element={<SupplierBrowse />} />
               <Route path="/suppliers/:supplierId" element={<SupplierDetail />} />
               <Route path="/retailers" element={<PlaceholderPage title="Retailer Management" />} />
