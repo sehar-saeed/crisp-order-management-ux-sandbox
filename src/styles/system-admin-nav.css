@@ -1,0 +1,28 @@
+.system-admin-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--cool-gray-80);
+  background-color: white;
+  padding: 0 32px;
+}
+
+.system-admin-nav-item {
+  padding: 12px 20px;
+  text-decoration: none;
+  color: var(--cool-gray-40);
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.system-admin-nav-item:hover {
+  color: var(--teal-vivid-30);
+  background-color: var(--teal-vivid-95);
+}
+
+.system-admin-nav-item.active {
+  color: var(--teal-vivid-30);
+  font-weight: 700;
+  border-bottom-color: var(--teal-vivid-40);
+}

@@ -1,0 +1,177 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+:root {
+  /* ── Teal Vivid ── */
+  --teal-vivid-10: #004440;
+  --teal-vivid-20: #016457;
+  --teal-vivid-30: #048271;
+  --teal-vivid-40: #079a82;
+  --teal-vivid-50: #17b897;
+  --teal-vivid-60: #2dcca7;
+  --teal-vivid-70: #5fe3c0;
+  --teal-vivid-80: #8eedd1;
+  --teal-vivid-90: #c6f7e9;
+  --teal-vivid-95: #f3fdf9;
+
+  /* ── Cool Gray ── */
+  --cool-gray-10: #1f2933;
+  --cool-gray-20: #323f4b;
+  --cool-gray-30: #3e4c59;
+  --cool-gray-40: #52606d;
+  --cool-gray-50: #616e7c;
+  --cool-gray-60: #7b8794;
+  --cool-gray-70: #9aa5b1;
+  --cool-gray-80: #e7ebef;
+  --cool-gray-85: #dfe5ec;
+  --cool-gray-90: #eceff4;
+  --cool-gray-95: #f5f7fa;
+
+  /* ── Typography ── */
+  --font-primary: "Outfit", sans-serif;
+
+  /* ── Spacing ── */
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m: 16px;
+  --space-l: 32px;
+  --space-xl: 64px;
+
+  /* ── Semantic Colors ── */
+  --color-error: #f42e48;
+  --color-error-light: #f86a6a;
+  --color-warning: #f6a121;
+  --color-success-light: #5bbe61;
+  --color-info: #386fdd;
+  --color-accent: var(--teal-vivid-30);
+  --color-highlight: var(--teal-vivid-95);
+  --color-surface: white;
+
+  /* ── Buttons ── */
+  --btn-primary-bg: var(--teal-vivid-30);
+  --btn-primary-bg-hover: var(--teal-vivid-20);
+  --btn-primary-text: white;
+  --btn-secondary-bg: white;
+  --btn-secondary-border: var(--teal-vivid-30);
+  --btn-secondary-text: var(--teal-vivid-30);
+  --btn-secondary-bg-hover: var(--teal-vivid-95);
+  --btn-disabled-bg: var(--cool-gray-80);
+  --btn-disabled-text: var(--cool-gray-60);
+
+  /* ── Inputs ── */
+  --input-bg: white;
+  --input-border: var(--cool-gray-80);
+  --input-border-focus: var(--teal-vivid-50);
+  --input-text: var(--cool-gray-10);
+  --input-placeholder: var(--cool-gray-60);
+  --input-label: var(--cool-gray-30);
+  --input-error-border: var(--color-error);
+
+  /* ── Panels & Cards ── */
+  --panel-bg: white;
+  --panel-border: var(--cool-gray-90);
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --card-bg: white;
+  --card-border: var(--cool-gray-90);
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  /* ── Overlay ── */
+  --overlay-bg: rgba(31, 41, 51, 0.48);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--cool-gray-95);
+  font-family: var(--font-primary);
+  color: var(--cool-gray-10);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Layout Utilities ── */
+
+.table-wrapper {
+  margin: 0 var(--space-l);
+  padding-bottom: 2rem;
+}
+
+.modal-button-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.row-action-button-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-modal-spinner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.bulk-requeue-block {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-m) var(--space-l);
+  background: white;
+  border-top: 1px solid var(--cool-gray-80);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.data-display-panel {
+  background: var(--cool-gray-95);
+  border: 1px solid var(--cool-gray-90);
+  border-radius: 8px;
+  padding: var(--space-m);
+}
+
+.data-display-code-block {
+  background: var(--cool-gray-10);
+  color: var(--teal-vivid-70);
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 13px;
+  border-radius: 6px;
+  padding: var(--space-m);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Spacing Utilities ── */
+
+.mtm {
+  margin-top: 16px;
+}
+
+.mvm {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.mrl {
+  margin-right: 32px;
+}
+
+.man {
+  margin: 0;
+}

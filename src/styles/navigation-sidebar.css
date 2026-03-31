@@ -1,0 +1,316 @@
+.navigation-sidebar {
+  width: 230px;
+  background-color: var(--cool-gray-95);
+  border-right: 1px solid #dce5e3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.navigation-sidebar.collapsed {
+  width: 70px;
+}
+
+.navigation-items {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-m) 0;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-m) var(--space-l);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+  color: var(--cool-gray-40);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 400;
+  gap: var(--space-m);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateX(2px);
+}
+
+.nav-item:active {
+  transform: translateX(0);
+}
+
+.nav-item.active {
+  background-color: var(--teal-vivid-10);
+  color: #fff;
+  font-weight: 600;
+  border-left: 4px solid var(--teal-vivid-40);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease;
+}
+
+.navigation-sidebar.collapsed .nav-label {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  display: none;
+}
+
+.navigation-sidebar.collapsed .nav-item {
+  padding: var(--space-m);
+  justify-content: center;
+}
+
+.navigation-sidebar.collapsed .nav-item.active {
+  border-left: none;
+  border-top: 3px solid var(--teal-vivid-40);
+}
+
+.toggle-sidebar-button {
+  display: flex;
+  align-items: center;
+  padding: var(--space-m) var(--space-l);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--cool-gray-80);
+  cursor: pointer;
+  color: var(--cool-gray-50);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 400;
+  gap: var(--space-m);
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+  margin-top: auto;
+}
+
+.toggle-sidebar-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.toggle-icon {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.toggle-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease;
+}
+
+.navigation-sidebar.collapsed .toggle-label {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  display: none;
+}
+
+.navigation-sidebar.collapsed .toggle-sidebar-button {
+  padding: var(--space-m);
+  justify-content: center;
+}
+
+.nav-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--cool-gray-80);
+}
+
+.nav-section-header {
+  padding: 0.5rem var(--space-l);
+  margin-bottom: 0.5rem;
+}
+
+.nav-section-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cool-gray-60);
+  font-size: 12px;
+}
+
+.navigation-sidebar.collapsed .nav-section-header {
+  display: none;
+}
+
+.navigation-sidebar.collapsed .nav-section {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.navigation-sidebar.collapsed .nav-section-label {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .navigation-sidebar {
+    width: 200px;
+  }
+
+  .nav-item {
+    padding: var(--space-s) var(--space-m);
+    font-size: 13px;
+  }
+
+  .nav-icon {
+    font-size: 1rem;
+    min-width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation-sidebar {
+    width: 60px;
+  }
+
+  .navigation-sidebar.collapsed {
+    width: 60px;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-item {
+    padding: var(--space-m);
+    justify-content: center;
+  }
+
+  .nav-item.active {
+    border-left: none;
+    border-top: 3px solid var(--teal-vivid-40);
+  }
+
+  .toggle-label {
+    display: none;
+  }
+
+  .toggle-sidebar-button {
+    padding: var(--space-m);
+    justify-content: center;
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  border-bottom: 1px solid #dce5e3;
+  gap: 12px;
+}
+
+.sidebar-logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--teal-vivid-30);
+  letter-spacing: -0.5px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--teal-vivid-10);
+  text-align: center;
+  margin: 0;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.navigation-sidebar.collapsed .sidebar-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ── Dark theme ── */
+.navigation-sidebar.dark-theme {
+  background-color: var(--teal-vivid-10);
+  border-right-color: var(--teal-vivid-20);
+}
+
+.navigation-sidebar.dark-theme .nav-item {
+  color: #fff;
+}
+
+.navigation-sidebar.dark-theme .nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navigation-sidebar.dark-theme .nav-item.active {
+  background-color: #fff;
+  color: #323f4b;
+  border-left-color: var(--teal-vivid-40);
+}
+
+.navigation-sidebar.dark-theme.collapsed .nav-item.active {
+  border-top-color: var(--teal-vivid-40);
+  border-left: none;
+}
+
+.navigation-sidebar.dark-theme .toggle-icon {
+  color: #fff;
+}
+
+.navigation-sidebar.dark-theme .sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.navigation-sidebar.dark-theme .sidebar-logo {
+  color: #fff;
+}
+
+.navigation-sidebar.dark-theme .sidebar-title {
+  color: #fff;
+}
+
+.navigation-sidebar.dark-theme .nav-section {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+.navigation-sidebar.dark-theme .nav-section-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.navigation-sidebar.dark-theme .toggle-sidebar-button {
+  border-top-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.navigation-sidebar.dark-theme .toggle-sidebar-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
