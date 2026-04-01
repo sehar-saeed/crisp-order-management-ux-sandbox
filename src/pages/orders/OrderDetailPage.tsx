@@ -23,15 +23,23 @@ export const OrderDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState<OrderBrowseRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'lines' | 'history'>('lines');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const orders = await fetchOrders();
-      if (!cancelled) {
-        setOrder(orders.find((o) => o.id === orderId) ?? null);
-        setLoading(false);
+      try {
+        const orders = await fetchOrders();
+        if (!cancelled) {
+          setOrder(orders.find((o) => o.id === orderId) ?? null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load order');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
@@ -64,6 +72,20 @@ export const OrderDetailPage: React.FC = () => {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <Spinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <Panel style={{ textAlign: 'center', padding: '3rem' }}>
+          <p style={{ color: '#b91c1c', fontWeight: 500 }}>Unable to load order</p>
+          <p style={{ color: 'var(--cool-gray-50)', fontSize: '13px', margin: '0.5rem 0 1rem' }}>{error}</p>
+          <Flex style={{ gap: '0.5rem', justifyContent: 'center' }}>
+            <Button variant="secondary" onClick={() => navigate('/orders')}>Back to Orders</Button>
+          </Flex>
+        </Panel>
       </div>
     );
   }

@@ -1,67 +1,29 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Drawer, Button, TextField, SelectField, Flex } from '../../ui';
 import type {
   MasterBrowseField,
   ClientBrowseOverride,
   ResolvedBrowseColumn,
   NumberFormat,
-  DataType,
 } from '../../types/browseConfig';
 import { resolveColumns } from '../../hooks/useBrowseConfig';
 import { formatCellValue } from '../table/ConfigDrivenGrid';
+import {
+  upsertOverride,
+  removeOverride,
+  NUMBER_FORMATS,
+  DATA_TYPE_LABELS,
+  NUMBER_FORMAT_LABELS,
+  SAMPLE_VALUES,
+} from '../../utils/browseFieldHelpers';
 
-/**
- * Props for the Customize Columns drawer.
- * masterFields = master_custom_browse rows (read-only).
- * clientOverrides = custom_browse rows (the client's current overrides).
- */
 interface ColumnCustomizationDrawerProps {
   masterFields: readonly MasterBrowseField[];
   clientOverrides: ClientBrowseOverride[];
   onApply: (overrides: ClientBrowseOverride[]) => void;
   onResetAll: () => void;
   onClose: () => void;
-}
-
-const NUMBER_FORMATS: NumberFormat[] = ['number', 'dollars', 'percent'];
-
-const DATA_TYPE_LABELS: Record<DataType, string> = {
-  string: 'String',
-  number: 'Number',
-  date: 'Date',
-};
-
-const NUMBER_FORMAT_LABELS: Record<string, string> = {
-  number: 'Plain Number',
-  dollars: 'Dollars ($)',
-  percent: 'Percent (%)',
-};
-
-const SAMPLE_VALUES: Record<DataType, any> = {
-  number: 12345.6789,
-  date: '2025-03-15',
-  string: 'Sample Text',
-};
-
-function upsertOverride(
-  overrides: ClientBrowseOverride[],
-  fieldId: string,
-  updates: Partial<Omit<ClientBrowseOverride, 'field_id'>>,
-): ClientBrowseOverride[] {
-  const idx = overrides.findIndex((o) => o.field_id === fieldId);
-  if (idx >= 0) {
-    const updated = [...overrides];
-    updated[idx] = { ...updated[idx], ...updates };
-    return updated;
-  }
-  return [...overrides, { field_id: fieldId, ...updates }];
-}
-
-function removeOverride(
-  overrides: ClientBrowseOverride[],
-  fieldId: string,
-): ClientBrowseOverride[] {
-  return overrides.filter((o) => o.field_id !== fieldId);
 }
 
 export const ColumnCustomizationDrawer: React.FC<ColumnCustomizationDrawerProps> = ({
@@ -71,6 +33,7 @@ export const ColumnCustomizationDrawer: React.FC<ColumnCustomizationDrawerProps>
   onResetAll,
   onClose,
 }) => {
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<ClientBrowseOverride[]>(
     () => clientOverrides.map((o) => ({ ...o })),
   );
@@ -116,7 +79,6 @@ export const ColumnCustomizationDrawer: React.FC<ColumnCustomizationDrawerProps>
       list.forEach((col, idx) => {
         const master = masterMap.get(col.field_id);
         if (!master || idx === master.default_sequence) {
-          // New position matches master default — remove any sequence override
           const existing = updated.find((o) => o.field_id === col.field_id);
           if (existing?.sequence !== undefined) {
             const { sequence: _, ...rest } = existing;
@@ -175,6 +137,11 @@ export const ColumnCustomizationDrawer: React.FC<ColumnCustomizationDrawerProps>
     onClose();
   };
 
+  const handleOpenFullPage = () => {
+    onClose();
+    navigate('/orders/customize-columns');
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       if (editingFieldId) setEditingFieldId(null);
@@ -192,8 +159,12 @@ export const ColumnCustomizationDrawer: React.FC<ColumnCustomizationDrawerProps>
       <div className="cc-drawer" onKeyDown={handleKeyDown}>
         {!editingResolved ? (
           <>
+            <div className="cc-drawer__top-actions">
+              <Button size="S" variant="text" onClick={handleOpenFullPage}>
+                Open Full Configuration &rarr;
+              </Button>
+            </div>
             <p className="cc-drawer__hint">
-              All fields from the master list are shown below.
               Toggle visibility, drag to reorder, or click Edit to override display settings.
               {customizedCount > 0 && (
                 <span className="cc-drawer__override-count">

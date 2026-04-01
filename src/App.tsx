@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage';
 import { IncomingData } from './pages/IncomingData';
 import { OrderBrowsePage } from './pages/orders/OrderBrowsePage';
 import { OrderDetailPage } from './pages/orders/OrderDetailPage';
+import { ColumnCustomizationPage } from './pages/orders/ColumnCustomizationPage';
 import { SupplierBrowse } from './pages/SupplierBrowse';
 import { SupplierDetail } from './pages/SupplierDetail';
 import { PlaceholderPage } from './pages/PlaceholderPage';
@@ -21,6 +22,7 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/incoming-data" element={<IncomingData />} />
               <Route path="/orders" element={<OrderBrowsePage />} />
+              <Route path="/orders/customize-columns" element={<ColumnCustomizationPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
               <Route path="/suppliers" element={<SupplierBrowse />} />
               <Route path="/suppliers/:supplierId" element={<SupplierDetail />} />

@@ -3,6 +3,7 @@ import { Panel, Flex, Button } from '../../ui';
 
 interface BulkActionBarProps {
   selectedCount: number;
+  pageSelectedCount: number;
   totalCount: number;
   totalFilteredCount: number;
   selectAllPages: boolean;
@@ -16,6 +17,7 @@ interface BulkActionBarProps {
 
 export const BulkActionBar: React.FC<BulkActionBarProps> = ({
   selectedCount,
+  pageSelectedCount,
   totalCount,
   totalFilteredCount,
   selectAllPages,
@@ -28,7 +30,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
 }) => {
   if (selectedCount === 0) return null;
 
-  const pageIsFullySelected = selectedCount >= totalCount && totalCount > 0;
+  const pageIsFullySelected = pageSelectedCount >= totalCount && totalCount > 0;
   const canSelectMore = !selectAllPages && totalFilteredCount > totalCount;
 
   return (
@@ -38,7 +40,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           <span className="ob-bulk-bar__count">
             {selectAllPages
               ? `All ${selectedCount} orders selected`
-              : `${selectedCount} of ${totalCount} selected`}
+              : `${selectedCount} selected (${pageSelectedCount} on this page)`}
           </span>
 
           {pageIsFullySelected && canSelectMore && (
