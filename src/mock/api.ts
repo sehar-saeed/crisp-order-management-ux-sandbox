@@ -5,7 +5,6 @@ import { DataRecord } from '../types/record';
 import { User } from '../types/users';
 import { mockSuppliers } from './data/suppliers';
 import { mockRetailers } from './data/retailers';
-import { mockOrders as legacyOrders } from './data/orders';
 import { mockOrders } from './orders/mockOrders';
 import { mockIncomingData, mockClients, mockRetailerOptions, mockSupplierOptions } from './data/incomingData';
 import { mockUsers } from './data/users';

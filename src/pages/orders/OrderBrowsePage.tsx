@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Headline, Spinner, Panel, Button, Flex, Modal } from '../../ui';
 import { useBrowseConfig } from '../../hooks/useBrowseConfig';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useOrderPagination } from '../../hooks/useOrderPagination';
 import { fetchOrders, setSimulateOrderError } from '../../mock/api';
 import { buildGridPayload, getSecurityExcludedFields } from '../../mock/buildGridPayload';
@@ -9,13 +10,19 @@ import { notificationService } from '../../services/NotificationService';
 import { QuickFindBar } from '../../components/orders/QuickFindBar';
 import { BulkActionBar } from '../../components/orders/BulkActionBar';
 import { OrderFooter } from '../../components/orders/OrderFooter';
+import { ViewSelector } from '../../components/orders/ViewSelector';
 import { FilterPanel, applyOrderFilters, hasActiveFilters, EMPTY_FILTERS } from '../../components/orders/FilterPanel';
 import type { OrderFilters } from '../../components/orders/FilterPanel';
 import { ConfigDrivenGrid } from '../../components/table/ConfigDrivenGrid';
 import { QuickFindChooserModal } from '../../components/modals/QuickFindChooserModal';
 import { ColumnCustomizationDrawer } from '../../components/modals/ColumnCustomizationDrawer';
+import { SaveViewModal } from '../../components/modals/SaveViewModal';
+import { SharedViewWarningModal } from '../../components/modals/SharedViewWarningModal';
+import { ManageViewsModal } from '../../components/modals/ManageViewsModal';
 import type { OrderBrowseRow, QuickFindMode } from '../../types/order';
+import type { ViewScope } from '../../types/savedView';
 import '../../styles/order-browse.css';
+import '../../styles/saved-views.css';
 
 function formatCurrency(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -66,6 +73,12 @@ export const OrderBrowsePage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [saveModalInitialName, setSaveModalInitialName] = useState('');
+  const [saveModalForcedScope, setSaveModalForcedScope] = useState<ViewScope | undefined>(undefined);
+  const [showSharedWarning, setShowSharedWarning] = useState(false);
+  const [showManageViews, setShowManageViews] = useState(false);
+
   const {
     masterFields,
     clientOverrides,
@@ -74,6 +87,35 @@ export const OrderBrowsePage: React.FC = () => {
     resetAllOverrides,
   } = useBrowseConfig();
 
+  const {
+    personalViews,
+    sharedViews,
+    activeView,
+    activeViewId,
+    selectView,
+    saveView,
+    updateView,
+    deleteView,
+    canEditView,
+    getStartupConfig,
+  } = useSavedViews();
+
+  const startupAppliedRef = useRef(false);
+  useEffect(() => {
+    if (startupAppliedRef.current) return;
+    startupAppliedRef.current = true;
+    const startup = getStartupConfig();
+    if (startup) {
+      applyOverrides(startup.config);
+      selectView(startup.viewId);
+    }
+  }, [getStartupConfig, applyOverrides, selectView]);
+
+  const isViewModified = useMemo(() => {
+    if (!activeView) return clientOverrides.length > 0;
+    return JSON.stringify(clientOverrides) !== JSON.stringify(activeView.column_config);
+  }, [activeView, clientOverrides]);
+
   const filteredOrders = useMemo(
     () => applyOrderFilters(allOrders, filters),
     [allOrders, filters]
@@ -81,11 +123,11 @@ export const OrderBrowsePage: React.FC = () => {
 
   const pagination = useOrderPagination(filteredOrders);
 
-  /**
-   * Build the backend contract payload from resolved columns + page rows.
-   * This simulates what the server would deliver: grid metadata + positional rows.
-   * The grid component receives ONLY this payload — no keyed objects.
-   */
+  const pageSelectedCount = useMemo(
+    () => pagination.paginatedOrders.filter((o) => selectedIds.has(o.id)).length,
+    [pagination.paginatedOrders, selectedIds],
+  );
+
   const gridPayload = useMemo(
     () => buildGridPayload(visibleColumns, pagination.paginatedOrders, {
       idField: 'id',
@@ -107,14 +149,15 @@ export const OrderBrowsePage: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+  useEffect(() => { loadOrders(); }, [loadOrders]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (showColumnDrawer) return;
+        if (showSaveViewModal) { setShowSaveViewModal(false); return; }
+        if (showSharedWarning) { setShowSharedWarning(false); return; }
+        if (showManageViews) { setShowManageViews(false); return; }
         if (showChooser) { setShowChooser(false); return; }
         if (showDeleteModal) { setShowDeleteModal(false); return; }
         if (showFilters) { setShowFilters(false); return; }
@@ -130,7 +173,9 @@ export const OrderBrowsePage: React.FC = () => {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [showColumnDrawer, showChooser, showDeleteModal, showFilters, pagination]);
+  }, [showColumnDrawer, showChooser, showDeleteModal, showFilters, showSaveViewModal, showSharedWarning, showManageViews, pagination]);
+
+  /* ── Selection ── */
 
   const toggleSelection = useCallback((id: string) => {
     setSelectAllPages(false);
@@ -159,20 +204,14 @@ export const OrderBrowsePage: React.FC = () => {
   const handleToggleSelectAll = () => {
     const pageIds = pagination.paginatedOrders.map((o) => o.id);
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
-    if (allPageSelected) {
-      clearSelection();
-    } else {
-      selectAllCurrentPage();
-    }
+    if (allPageSelected) clearSelection(); else selectAllCurrentPage();
   };
+
+  /* ── Quick Find ── */
 
   const handleQuickFind = () => {
     const term = quickFindValue.trim().toLowerCase();
-    if (!term) {
-      notificationService.warning('Please enter a PO number to search');
-      return;
-    }
-
+    if (!term) { notificationService.warning('Please enter a PO number to search'); return; }
     const matches = allOrders.filter((o) => {
       const on = o.orderNumber.toLowerCase();
       switch (quickFindMode) {
@@ -181,25 +220,75 @@ export const OrderBrowsePage: React.FC = () => {
         case 'contains': return on.includes(term);
       }
     });
+    if (matches.length === 0) notificationService.warning(`No orders found matching "${quickFindValue}"`);
+    else if (matches.length === 1) navigate(`/orders/${matches[0].id}`);
+    else { setChooserResults(matches); setShowChooser(true); }
+  };
 
-    if (matches.length === 0) {
-      notificationService.warning(`No orders found matching "${quickFindValue}"`);
-    } else if (matches.length === 1) {
-      navigate(`/orders/${matches[0].id}`);
-    } else {
-      setChooserResults(matches);
-      setShowChooser(true);
+  /* ── View Actions ── */
+
+  const handleSelectView = (viewId: string) => {
+    const allViews = [...personalViews, ...sharedViews];
+    const view = allViews.find((v) => v.view_id === viewId);
+    if (!view) return;
+    applyOverrides(view.column_config);
+    selectView(viewId);
+    notificationService.success(`View "${view.name}" loaded`);
+  };
+
+  const handleSelectSystemDefault = () => {
+    resetAllOverrides();
+    selectView(null);
+    notificationService.success('Switched to system default');
+  };
+
+  const openSaveNewView = () => {
+    setSaveModalInitialName('');
+    setSaveModalForcedScope(undefined);
+    setShowSaveViewModal(true);
+  };
+
+  const openSaveAs = () => {
+    setSaveModalInitialName(activeView ? `${activeView.name} (copy)` : '');
+    setSaveModalForcedScope('personal');
+    setShowSharedWarning(false);
+    setShowSaveViewModal(true);
+  };
+
+  const handleSave = () => {
+    if (!activeView) {
+      openSaveNewView();
+      return;
     }
+    if (!canEditView(activeView)) {
+      setShowSharedWarning(true);
+      return;
+    }
+    updateView(activeView.view_id, { column_config: clientOverrides });
+    notificationService.success(`View "${activeView.name}" saved`);
   };
 
-  const handleChooserSelect = (order: OrderBrowseRow) => {
-    setShowChooser(false);
-    navigate(`/orders/${order.id}`);
+  const handleSaveViewSubmit = (name: string, scope: ViewScope, isDefault: boolean) => {
+    saveView({ name, scope, is_default: isDefault, column_config: clientOverrides });
+    setShowSaveViewModal(false);
+    notificationService.success(`View "${name}" saved`);
   };
 
-  const handleRowClick = (rowId: string) => {
-    navigate(`/orders/${rowId}`);
+  const handleDeleteView = (viewId: string) => {
+    const allViews = [...personalViews, ...sharedViews];
+    const view = allViews.find((v) => v.view_id === viewId);
+    deleteView(viewId);
+    if (view) notificationService.success(`View "${view.name}" deleted`);
   };
+
+  const handleSetDefault = (viewId: string) => {
+    updateView(viewId, { is_default: true });
+    const allViews = [...personalViews, ...sharedViews];
+    const view = allViews.find((v) => v.view_id === viewId);
+    if (view) notificationService.success(`"${view.name}" set as default`);
+  };
+
+  /* ── Bulk Actions ── */
 
   const handleBatchDelete = async () => {
     const ids = [...selectedIds];
@@ -215,22 +304,15 @@ export const OrderBrowsePage: React.FC = () => {
   };
 
   const handleSend = () => {
-    const ids = [...selectedIds];
-    console.log('[Bulk Send]', { count: ids.length, orderIds: ids });
+    console.log('[Bulk Send]', { count: selectedIds.size, orderIds: [...selectedIds] });
     notificationService.success(`${selectedIds.size} order(s) sent`);
     clearSelection();
   };
 
   const handlePrint = () => {
-    const ids = [...selectedIds];
-    console.log('[Bulk Print]', { count: ids.length, orderIds: ids });
+    console.log('[Bulk Print]', { count: selectedIds.size, orderIds: [...selectedIds] });
     notificationService.info(`Preparing print view for ${selectedIds.size} order(s)...`);
     setTimeout(() => window.print(), 300);
-  };
-
-  const handleSimulateError = () => {
-    setSimulateOrderError(true);
-    loadOrders();
   };
 
   const activeFilterCount = Object.values(filters).filter((v) => v !== '').length;
@@ -239,19 +321,57 @@ export const OrderBrowsePage: React.FC = () => {
 
   return (
     <div className="ob-page">
+      {/* ── Header ── */}
       <div className="ob-page__header">
         <div className="ob-page__header-row">
-          <Headline as="h1">Orders</Headline>
-          <button
-            className="ob-dev-toggle"
-            onClick={handleSimulateError}
-            title="Developer tool: simulate a network error on next load"
-          >
-            Simulate Error
-          </button>
+          <Flex style={{ alignItems: 'center', gap: '0.75rem' }}>
+            <Headline as="h1">Orders</Headline>
+            <div className="ob-view-bar">
+              <ViewSelector
+                personalViews={personalViews}
+                sharedViews={sharedViews}
+                activeView={activeView}
+                isModified={isViewModified}
+                onSelectView={handleSelectView}
+                onSelectSystemDefault={handleSelectSystemDefault}
+                onSaveNewView={openSaveNewView}
+                onManageViews={() => setShowManageViews(true)}
+              />
+            </div>
+          </Flex>
+          <div className="ob-view-actions">
+            {isViewModified && (
+              <span className="ob-view-actions__unsaved">
+                <span className="ob-view-actions__unsaved-dot" />
+                Unsaved changes
+              </span>
+            )}
+            <Button
+              size="S"
+              variant={isViewModified ? 'primary' : 'secondary'}
+              onClick={handleSave}
+              disabled={!isViewModified}
+            >
+              Save
+            </Button>
+            <Button size="S" variant="secondary" onClick={openSaveAs}>
+              Save As
+            </Button>
+            <Button size="S" variant="text" onClick={() => setShowManageViews(true)}>
+              Manage Views
+            </Button>
+            <button
+              className="ob-dev-toggle"
+              onClick={() => { setSimulateOrderError(true); loadOrders(); }}
+              title="Developer tool: simulate a network error on next load"
+            >
+              Simulate Error
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* ── Quick Find ── */}
       <QuickFindBar
         mode={quickFindMode}
         value={quickFindValue}
@@ -263,6 +383,7 @@ export const OrderBrowsePage: React.FC = () => {
         onCustomizeColumns={() => setShowColumnDrawer(true)}
       />
 
+      {/* ── Filters ── */}
       {showFilters && (
         <FilterPanel
           orders={allOrders}
@@ -305,14 +426,14 @@ export const OrderBrowsePage: React.FC = () => {
               <button onClick={() => setFilters((f) => ({ ...f, dateTo: '' }))}>&times;</button>
             </span>
           )}
-          <Button size="S" variant="text" onClick={() => setFilters({ ...EMPTY_FILTERS })}>
-            Clear all
-          </Button>
+          <Button size="S" variant="text" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Clear all</Button>
         </div>
       )}
 
+      {/* ── Bulk Actions ── */}
       <BulkActionBar
         selectedCount={selectedIds.size}
+        pageSelectedCount={pageSelectedCount}
         totalCount={pagination.paginatedOrders.length}
         totalFilteredCount={filteredOrders.length}
         selectAllPages={selectAllPages}
@@ -324,6 +445,7 @@ export const OrderBrowsePage: React.FC = () => {
         onPrint={handlePrint}
       />
 
+      {/* ── Main Content ── */}
       {loading ? (
         <TableSkeleton />
       ) : error ? (
@@ -335,21 +457,15 @@ export const OrderBrowsePage: React.FC = () => {
         </Panel>
       ) : filteredOrders.length === 0 ? (
         <Panel className="ob-state-card ob-state-card--empty">
-          <div className="ob-state-card__icon ob-state-card__icon--empty">
-            {isFiltered ? '?' : '~'}
-          </div>
-          <h3 className="ob-state-card__title">
-            {isFiltered ? 'No matching orders' : 'No orders yet'}
-          </h3>
+          <div className="ob-state-card__icon ob-state-card__icon--empty">{isFiltered ? '?' : '~'}</div>
+          <h3 className="ob-state-card__title">{isFiltered ? 'No matching orders' : 'No orders yet'}</h3>
           <p className="ob-state-card__desc">
             {isFiltered
               ? 'No orders match the current filters. Try broadening your search criteria.'
               : 'Orders will appear here once they are created.'}
           </p>
           {isFiltered && (
-            <Button variant="secondary" onClick={() => setFilters({ ...EMPTY_FILTERS })}>
-              Clear all filters
-            </Button>
+            <Button variant="secondary" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Clear all filters</Button>
           )}
         </Panel>
       ) : (
@@ -357,9 +473,7 @@ export const OrderBrowsePage: React.FC = () => {
           <div className="ob-summary">
             <div className="ob-summary__stat">
               <span className="ob-summary__value">{filteredOrders.length}</span>
-              <span className="ob-summary__label">
-                {isFiltered ? `of ${totalUnfilteredCount} orders` : 'orders'}
-              </span>
+              <span className="ob-summary__label">{isFiltered ? `of ${totalUnfilteredCount} orders` : 'orders'}</span>
             </div>
             <div className="ob-summary__divider" />
             <div className="ob-summary__stat">
@@ -375,7 +489,7 @@ export const OrderBrowsePage: React.FC = () => {
             selectedIds={selectedIds}
             onToggleSelection={toggleSelection}
             onToggleSelectAll={handleToggleSelectAll}
-            onRowClick={handleRowClick}
+            onRowClick={(rowId) => navigate(`/orders/${rowId}`)}
             onGridReady={(params) => { gridRef.current = params.api; }}
           />
 
@@ -392,12 +506,14 @@ export const OrderBrowsePage: React.FC = () => {
         </>
       )}
 
+      {/* ── Modals & Drawers ── */}
+
       {showChooser && (
         <QuickFindChooserModal
           results={chooserResults}
           searchTerm={quickFindValue.trim()}
           searchMode={quickFindMode}
-          onSelect={handleChooserSelect}
+          onSelect={(order) => { setShowChooser(false); navigate(`/orders/${order.id}`); }}
           onClose={() => setShowChooser(false)}
         />
       )}
@@ -412,23 +528,47 @@ export const OrderBrowsePage: React.FC = () => {
         />
       )}
 
+      {showSaveViewModal && (
+        <SaveViewModal
+          initialName={saveModalInitialName}
+          forcedScope={saveModalForcedScope}
+          onSave={handleSaveViewSubmit}
+          onClose={() => setShowSaveViewModal(false)}
+        />
+      )}
+
+      {showSharedWarning && activeView && (
+        <SharedViewWarningModal
+          viewName={activeView.name}
+          onSaveAs={openSaveAs}
+          onClose={() => setShowSharedWarning(false)}
+        />
+      )}
+
+      {showManageViews && (
+        <ManageViewsModal
+          personalViews={personalViews}
+          sharedViews={sharedViews}
+          activeViewId={activeViewId}
+          onSelectView={handleSelectView}
+          onDeleteView={handleDeleteView}
+          onSetDefault={handleSetDefault}
+          canEdit={canEditView}
+          onClose={() => setShowManageViews(false)}
+        />
+      )}
+
       {showDeleteModal && (
         <Modal title="Delete Orders" onCloseClick={() => setShowDeleteModal(false)}>
           <div style={{ position: 'relative' }}>
-            {isDeleting && (
-              <div className="confirm-modal-spinner-overlay"><Spinner /></div>
-            )}
+            {isDeleting && <div className="confirm-modal-spinner-overlay"><Spinner /></div>}
             <p style={{ marginBottom: '1.5rem' }}>
               Are you sure you want to delete <strong>{selectedIds.size}</strong> selected order(s)?
               This action cannot be undone.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>
-                Cancel
-              </Button>
-              <Button onClick={handleBatchDelete} disabled={isDeleting}>
-                Delete
-              </Button>
+              <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>Cancel</Button>
+              <Button onClick={handleBatchDelete} disabled={isDeleting}>Delete</Button>
             </div>
           </div>
         </Modal>
