@@ -5,7 +5,8 @@ import { DataRecord } from '../types/record';
 import { User } from '../types/users';
 import { mockSuppliers } from './data/suppliers';
 import { mockRetailers } from './data/retailers';
-import { mockOrders } from './data/orders';
+import { mockOrders as legacyOrders } from './data/orders';
+import { mockOrders } from './orders/mockOrders';
 import { mockIncomingData, mockClients, mockRetailerOptions, mockSupplierOptions } from './data/incomingData';
 import { mockUsers } from './data/users';
 
@@ -89,8 +90,20 @@ export async function deleteSupplier(id: string): Promise<void> {
 // Orders
 // ---------------------------------------------------------------------------
 
+let _simulateOrderError = false;
+
+export function setSimulateOrderError(flag: boolean) {
+  _simulateOrderError = flag;
+}
+
 export async function fetchOrders(): Promise<OrderBrowseRow[]> {
   await randomDelay();
+  if (_simulateOrderError) {
+    _simulateOrderError = false;
+    throw new Error(
+      'Network error: Unable to reach the order service (ECONNREFUSED). Please check your connection and try again.'
+    );
+  }
   return mockOrders.map((o) => ({ ...o }));
 }
 

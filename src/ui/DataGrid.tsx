@@ -10,6 +10,7 @@ interface DataGridProps {
   onGridReady?: (params: any) => void;
   onRowClicked?: (event: any) => void;
   rowStyle?: any;
+  getRowClass?: (params: any) => string;
   enableFilterHandlers?: boolean;
   sideBar?: any;
 }
@@ -21,6 +22,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
   onGridReady,
   onRowClicked,
   rowStyle,
+  getRowClass,
   sideBar,
 }) => (
   <div className="ag-theme-alpine" style={{ width: "100%", height: 500 }}>
@@ -31,6 +33,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
       onGridReady={onGridReady}
       onRowClicked={onRowClicked}
       rowStyle={rowStyle}
+      getRowClass={getRowClass}
       sideBar={sideBar}
       domLayout="normal"
     />
