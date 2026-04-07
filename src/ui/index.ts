@@ -13,3 +13,5 @@ export type { NotificationType } from "./Notification";
 export { MultiSelectDropdown } from "./MultiSelectDropdown";
 export { DatepickerButton } from "./DatepickerButton";
 export { DataGrid, LettuceAgGrid } from "./DataGrid";
+export { SearchableSelect } from "./SearchableSelect";
+export type { SearchableOption } from "./SearchableSelect";
