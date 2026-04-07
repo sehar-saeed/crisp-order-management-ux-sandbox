@@ -360,6 +360,9 @@ export const OrderBrowsePage: React.FC = () => {
             <Button size="S" variant="text" onClick={() => setShowManageViews(true)}>
               Manage Views
             </Button>
+            <Button size="S" onClick={() => navigate('/orders/new')}>
+              + New Order
+            </Button>
             <button
               className="ob-dev-toggle"
               onClick={() => { setSimulateOrderError(true); loadOrders(); }}
