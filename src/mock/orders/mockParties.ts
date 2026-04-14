@@ -1,4 +1,4 @@
-import type { MockParty } from '../../types/orderEntry';
+import type { MockParty, PartyKind } from '../../types/orderEntry';
 
 export const mockRetailers: MockParty[] = [
   {
@@ -323,3 +323,130 @@ export const mockSuppliers: MockParty[] = [
     ],
   },
 ];
+
+export const mockDistributors: MockParty[] = [
+  {
+    id: 'dist-001',
+    name: 'National Food Distributors',
+    shortCode: 'NFD',
+    billToAddress: {
+      name: 'National Food Distributors LLC',
+      line1: '500 Distribution Drive',
+      line2: '',
+      city: 'Memphis',
+      state: 'TN',
+      zip: '38118',
+    },
+    locations: [
+      {
+        id: 'dist-001-loc-1',
+        name: 'Warehouse A – Memphis',
+        address: {
+          name: 'NFD Warehouse A',
+          line1: '502 Distribution Drive',
+          line2: 'Bay 1-12',
+          city: 'Memphis',
+          state: 'TN',
+          zip: '38118',
+        },
+      },
+      {
+        id: 'dist-001-loc-2',
+        name: 'Warehouse B – Nashville',
+        address: {
+          name: 'NFD Warehouse B',
+          line1: '1800 Briley Pkwy',
+          line2: '',
+          city: 'Nashville',
+          state: 'TN',
+          zip: '37217',
+        },
+      },
+    ],
+  },
+  {
+    id: 'dist-002',
+    name: 'Western Supply Co',
+    shortCode: 'WSC',
+    billToAddress: {
+      name: 'Western Supply Company',
+      line1: '7700 E Marginal Way S',
+      line2: '',
+      city: 'Seattle',
+      state: 'WA',
+      zip: '98108',
+    },
+    locations: [
+      {
+        id: 'dist-002-loc-1',
+        name: 'Central DC – Seattle',
+        address: {
+          name: 'WSC Central DC',
+          line1: '7705 E Marginal Way S',
+          line2: '',
+          city: 'Seattle',
+          state: 'WA',
+          zip: '98108',
+        },
+      },
+    ],
+  },
+];
+
+export const mockStores: MockParty[] = [
+  {
+    id: 'store-001',
+    name: 'Store #1042 – Bentonville',
+    shortCode: 'S1042',
+    billToAddress: {
+      name: 'Store #1042',
+      line1: '610 SW 8th Street',
+      line2: '',
+      city: 'Bentonville',
+      state: 'AR',
+      zip: '72716',
+    },
+    locations: [],
+  },
+  {
+    id: 'store-002',
+    name: 'Store #2287 – Dallas',
+    shortCode: 'S2287',
+    billToAddress: {
+      name: 'Store #2287',
+      line1: '4100 Cedar Springs Rd',
+      line2: '',
+      city: 'Dallas',
+      state: 'TX',
+      zip: '75219',
+    },
+    locations: [],
+  },
+  {
+    id: 'store-003',
+    name: 'Store #3510 – Minneapolis',
+    shortCode: 'S3510',
+    billToAddress: {
+      name: 'Store #3510',
+      line1: '920 Nicollet Mall',
+      line2: '',
+      city: 'Minneapolis',
+      state: 'MN',
+      zip: '55402',
+    },
+    locations: [],
+  },
+];
+
+/**
+ * Returns the party list for a given PartyKind.
+ * Used by the order type system to populate from/to selectors dynamically.
+ */
+export function getPartiesByKind(kind: PartyKind): MockParty[] {
+  switch (kind) {
+    case 'retailer':    return mockRetailers;
+    case 'supplier':    return mockSuppliers;
+    case 'distributor': return mockDistributors;
+    case 'store':       return mockStores;
+  }
+}

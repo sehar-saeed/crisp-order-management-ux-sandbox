@@ -18,7 +18,9 @@ export type EntryFieldType =
   | 'party_select'
   | 'order_type'
   | 'number'
-  | 'currency';
+  | 'currency'
+  | 'status'
+  | 'readonly';
 
 export type EntryFieldScope = 'header' | 'txn';
 

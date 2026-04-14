@@ -850,12 +850,28 @@
   color: var(--cool-gray-10);
 }
 
+.od-field__value--highlight {
+  color: var(--blue-50, #2563eb);
+  font-weight: 600;
+}
+
+.od-page__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cool-gray-50);
+  letter-spacing: 0.02em;
+}
+
 /* ── Tabs ── */
 
 .od-tabs {
   display: flex;
   gap: 0;
   border-bottom: 2px solid var(--cool-gray-90);
+  background: var(--cool-gray-97, #f9fafb);
+  padding: 0 0.25rem;
+  border-radius: 6px 6px 0 0;
 }
 
 .od-tabs__tab {
@@ -879,6 +895,22 @@
 .od-tabs__tab--active {
   color: var(--teal-vivid-30);
   border-bottom-color: var(--teal-vivid-30);
+}
+
+/* ── Tab content panel ── */
+
+.od-tab-panel {
+  margin-top: 1.5rem;
+  background: white;
+  border: 1px solid var(--cool-gray-90);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.od-tab-panel--flush {
+  padding: 0;
+  overflow: hidden;
 }
 
 /* ── Line Items Table ── */
@@ -932,6 +964,10 @@
 .od-line-table__right {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.od-line-table__center {
+  text-align: center;
 }
 
 .od-line-table tfoot td {
@@ -1018,6 +1054,89 @@
   color: var(--cool-gray-60);
 }
 
+.od-timeline__header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2px;
+}
+
+.od-timeline__header-row .od-timeline__action {
+  margin-bottom: 0;
+}
+
+/* Source-colored dots */
+.od-timeline__dot--manual { background: var(--blue-50, #2563eb); }
+.od-timeline__dot--edi    { background: var(--teal-vivid-50, #0d9488); }
+.od-timeline__dot--upload { background: #d97706; }
+.od-timeline__dot--system { background: var(--cool-gray-50, #9ca3af); }
+
+/* Source badge */
+.od-src-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.od-src--manual {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.od-src--edi {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.od-src--upload {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.od-src--system {
+  background: var(--cool-gray-90, #e5e7eb);
+  color: var(--cool-gray-40, #6b7280);
+}
+
+/* Field-level change display */
+.od-timeline__field-change {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 12px;
+  margin: 4px 0;
+  padding: 4px 8px;
+  background: var(--cool-gray-95, #f9fafb);
+  border-radius: 4px;
+  border: 1px solid var(--cool-gray-90, #e5e7eb);
+}
+
+.od-timeline__field-name {
+  font-weight: 600;
+  color: var(--cool-gray-30, #374151);
+}
+
+.od-timeline__old-val {
+  color: #b91c1c;
+  text-decoration: line-through;
+}
+
+.od-timeline__arrow {
+  color: var(--cool-gray-50, #9ca3af);
+  font-size: 11px;
+}
+
+.od-timeline__new-val {
+  color: #166534;
+  font-weight: 500;
+}
+
 /* ── Animation ── */
 
 @keyframes ob-slide-in {
@@ -1029,6 +1148,65 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ── Header Values tab ── */
+
+.od-hv__hint {
+  font-size: 12px;
+  color: var(--cool-gray-50);
+  margin: 0 0 1rem;
+}
+
+.od-hv__empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--cool-gray-50);
+  font-size: 14px;
+}
+
+.od-hv__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.od-hv__row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--cool-gray-90, #e5e7eb);
+}
+
+.od-hv__row:last-child {
+  border-bottom: none;
+}
+
+.od-hv__label {
+  flex: 0 0 180px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cool-gray-40, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.od-hv__value {
+  flex: 1 1 auto;
+  font-size: 14px;
+  color: var(--cool-gray-10, #1f2937);
+}
+
+.od-hv__badge {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--blue-95, #dbeafe);
+  color: var(--blue-40, #2563eb);
+  letter-spacing: 0.01em;
 }
 
 /* ── Print styles ── */

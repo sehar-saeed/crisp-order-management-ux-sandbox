@@ -119,6 +119,10 @@
   overflow: hidden;
 }
 
+.ui-modal--wide {
+  max-width: 780px;
+}
+
 .ui-modal__header {
   display: flex;
   align-items: center;

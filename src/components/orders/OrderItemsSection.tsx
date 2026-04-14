@@ -3,14 +3,19 @@ import { Panel, Button, SearchableSelect } from '../../ui';
 import type { SearchableOption } from '../../ui';
 import { mockProducts } from '../../mock/orders/mockProducts';
 import { UOMS } from '../../types/orderEntry';
-import type { ItemTransaction } from '../../types/orderEntry';
+import type { ItemTransaction, OrderItem } from '../../types/orderEntry';
 import type { UseOrderItemsReturn } from '../../hooks/useOrderItems';
 import type { EntryFieldSet } from '../../hooks/useEntryFieldConfig';
 import type { ResolvedEntryField } from '../../types/entryFieldConfig';
+import type { DiscountChargeEntry } from '../../types/discountCharge';
 
 interface OrderItemsSectionProps {
   orderItems: UseOrderItemsReturn;
   txnConfig: EntryFieldSet;
+  /** Per-item discount/charge entries keyed by item.id. */
+  itemDCMap?: Record<string, DiscountChargeEntry[]>;
+  /** Opens the discounts & charges modal for a specific item. */
+  onOpenItemDC?: (item: OrderItem, baseAmount: number) => void;
 }
 
 function formatCurrency(n: number): string {
@@ -106,6 +111,8 @@ function TxnCell({
 export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
   orderItems,
   txnConfig,
+  itemDCMap,
+  onOpenItemDC,
 }) => {
   const {
     hasItems,
@@ -147,10 +154,8 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
 
   const toggleExpand = (id: string) => {
     setExpandedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+      if (prev.has(id)) return new Set<string>();
+      return new Set<string>([id]);
     });
   };
 
@@ -161,15 +166,9 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
   };
 
   React.useEffect(() => {
-    if (items.length > 0) {
-      const last = items[items.length - 1];
-      setExpandedItems((prev) => {
-        if (prev.has(last.id)) return prev;
-        const next = new Set(prev);
-        next.add(last.id);
-        return next;
-      });
-    }
+    if (items.length === 0) return;
+    const last = items[items.length - 1];
+    setExpandedItems(new Set<string>([last.id]));
   }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasExtended = visibleCols.some((c) => c.field_id === 'txn_extended');
@@ -190,7 +189,7 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
             <span className="oe-toggle__track" />
           </label>
           <span className="oe-toggle__label">
-            {hasItems ? 'With Items' : 'No Items (header only)'}
+            {hasItems ? 'With Items' : 'No Items (order-level only)'}
           </span>
         </div>
       </div>
@@ -198,7 +197,7 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
       {!hasItems && (
         <Panel>
           <div className="oi-empty">
-            This order has no line items. Only header-level data will be saved.
+            This order has no line items. Only order-level data will be saved.
           </div>
         </Panel>
       )}
@@ -217,16 +216,27 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
             const product = mockProducts.find((p) => p.id === item.product_id);
             const totals = itemTotals.find((t) => t.itemId === item.id);
             const isExpanded = expandedItems.has(item.id);
+            const dcEntries = itemDCMap?.[item.id] ?? [];
+            const dcNet = dcEntries.length > 0 ? dcNetTotal(dcEntries) : 0;
+            const hasDC = dcEntries.length > 0;
+            const netItemTotal = (totals?.extended ?? 0) + dcNet;
 
             return (
-              <div key={item.id} className="oi-card">
+              <div key={item.id} className={`oi-card${isExpanded ? ' oi-card--expanded' : ''}`}>
                 <div className="oi-card__header" onClick={() => toggleExpand(item.id)}>
                   <div className="oi-card__line">#{item.line_number}</div>
                   <div className="oi-card__info">
                     <span className="oi-card__desc">{item.description}</span>
-                    <span className="oi-card__upc">UPC: {item.upc}</span>
-                    {product && (
-                      <span className="oi-card__cat">{product.category}</span>
+                    {isExpanded && (
+                      <>
+                        <span className="oi-card__upc">UPC: {item.upc}</span>
+                        {product && (
+                          <span className="oi-card__cat">{product.category}</span>
+                        )}
+                      </>
+                    )}
+                    {hasDC && (
+                      <span className="oi-card__dc-badge">({formatNet(dcNet)})</span>
                     )}
                   </div>
                   <div className="oi-card__summary">
@@ -234,7 +244,7 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                       {totals?.qty ?? 0} units
                     </span>
                     <span className="oi-card__summary-amt">
-                      {formatCurrency(totals?.extended ?? 0)}
+                      {formatCurrency(hasDC ? netItemTotal : (totals?.extended ?? 0))}
                     </span>
                   </div>
                   <button
@@ -342,6 +352,50 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                       </table>
                     </div>
 
+                    {/* ── Item summary: compact for no-DC, full breakdown for DC ── */}
+                    <div className={`oi-item-summary${hasDC ? ' oi-item-summary--has-dc' : ''}`}>
+                      {hasDC ? (
+                        <>
+                          <div className="oi-item-summary__row">
+                            <span className="oi-item-summary__label">Item Total</span>
+                            <span className="oi-item-summary__value">
+                              {formatCurrency(totals?.extended ?? 0)}
+                            </span>
+                          </div>
+                          <div className="oi-item-summary__row oi-item-summary__row--dc">
+                            <span className="oi-item-summary__label">
+                              Discounts &amp; Charges
+                              {onOpenItemDC && (
+                                <button
+                                  className="oi-item-summary__edit"
+                                  onClick={() => onOpenItemDC(item, totals?.extended ?? 0)}
+                                  title={`Edit ${dcEntries.length} entries`}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </span>
+                            <span className="oi-item-summary__value oi-item-summary__value--dc">
+                              {formatNet(dcNet)}
+                            </span>
+                          </div>
+                          <div className="oi-item-summary__row oi-item-summary__row--net">
+                            <span className="oi-item-summary__label">Net Item Total</span>
+                            <span className="oi-item-summary__value">
+                              {formatCurrency(netItemTotal)}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="oi-item-summary__row oi-item-summary__row--simple">
+                          <span className="oi-item-summary__label">Item Total</span>
+                          <span className="oi-item-summary__value">
+                            {formatCurrency(totals?.extended ?? 0)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="oi-card__actions">
                       <Button
                         size="S"
@@ -350,6 +404,16 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                       >
                         + Add Transaction
                       </Button>
+                      {onOpenItemDC && (
+                        <button
+                          className="dc-action-btn dc-action-btn--compact"
+                          onClick={() => onOpenItemDC(item, totals?.extended ?? 0)}
+                          title={hasDC ? `Edit ${dcEntries.length} entries` : 'Add discounts & charges'}
+                        >
+                          <span className="dc-action-btn__label">Discounts &amp; Charges</span>
+                          {!hasDC && <span className="dc-action-btn__add">+ Add</span>}
+                        </button>
+                      )}
                       <Button
                         size="S"
                         variant="text"
@@ -402,3 +466,17 @@ export const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
     </div>
   );
 };
+
+function dcNetTotal(entries: DiscountChargeEntry[]): number {
+  return entries.reduce((sum, e) => {
+    const amt = e.amount ?? 0;
+    return sum + amt * (e.type === 'charge' ? 1 : -1);
+  }, 0);
+}
+
+function formatNet(n: number): string {
+  const abs = Math.abs(n);
+  const str = '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n >= 0 ? `+${str}` : `-${str}`;
+}
+

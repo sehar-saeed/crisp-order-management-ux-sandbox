@@ -6,9 +6,13 @@ import type { UseRepSplitsReturn } from '../../hooks/useRepSplits';
 
 interface RepSplitsSectionProps {
   repSplits: UseRepSplitsReturn;
+  /** When true, show a persistent "Get default rep splits" button (Order Edit mode). */
+  showGetDefaults?: boolean;
+  /** When true, all split fields are read-only (view-only mode for Order Edit). */
+  readOnly?: boolean;
 }
 
-export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits }) => {
+export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits, showGetDefaults, readOnly }) => {
   const {
     splits,
     isLoaded,
@@ -64,7 +68,12 @@ export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits })
       <div className="rs-header">
         <p className="oe-section__title">Rep Splits</p>
         <div className="rs-header__actions">
-          {isModified && (
+          {showGetDefaults && (
+            <Button variant="secondary" size="S" onClick={restoreDefaults}>
+              Get default rep splits
+            </Button>
+          )}
+          {!showGetDefaults && isModified && (
             <Button variant="text" size="S" onClick={restoreDefaults}>
               Restore Defaults
             </Button>
@@ -85,7 +94,7 @@ export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits })
                   <th className="rs-table__th rs-table__th--rep">Rep</th>
                   <th className="rs-table__th rs-table__th--pct">Sales %</th>
                   <th className="rs-table__th rs-table__th--pct">Comm %</th>
-                  <th className="rs-table__th rs-table__th--action" />
+                  {!readOnly && <th className="rs-table__th rs-table__th--action" />}
                 </tr>
               </thead>
               <tbody>
@@ -96,52 +105,66 @@ export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits })
                   return (
                     <tr key={idx} className={isDup ? 'rs-table__row--error' : ''}>
                       <td className="rs-table__td">
-                        <SearchableSelect
-                          compact
-                          value={row.rep_id}
-                          onChange={(v) => updateSplit(idx, 'rep_id', v)}
-                          options={[
-                            ...(rep ? [{ id: rep.id, label: rep.name, secondary: rep.code }] : []),
-                            ...mockReps
-                              .filter((r) => r.id !== row.rep_id && !usedRepIds.has(r.id))
-                              .map((r) => ({ id: r.id, label: r.name, secondary: r.code })),
-                          ]}
-                          placeholder="Select rep"
-                        />
+                        {readOnly ? (
+                          <span className="rs-readonly-text">{rep?.name ?? row.rep_id}</span>
+                        ) : (
+                          <SearchableSelect
+                            compact
+                            value={row.rep_id}
+                            onChange={(v) => updateSplit(idx, 'rep_id', v)}
+                            options={[
+                              ...(rep ? [{ id: rep.id, label: rep.name, secondary: rep.code }] : []),
+                              ...mockReps
+                                .filter((r) => r.id !== row.rep_id && !usedRepIds.has(r.id))
+                                .map((r) => ({ id: r.id, label: r.name, secondary: r.code })),
+                            ]}
+                            placeholder="Select rep"
+                          />
+                        )}
                         {isDup && <span className="rs-inline-error">Duplicate rep</span>}
                       </td>
                       <td className="rs-table__td rs-table__td--pct">
-                        <input
-                          className="rs-pct-input"
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={0.01}
-                          value={row.sales_pct}
-                          onChange={(e) => updateSplit(idx, 'sales_pct', e.target.value)}
-                        />
+                        {readOnly ? (
+                          <span className="rs-readonly-text">{row.sales_pct}%</span>
+                        ) : (
+                          <input
+                            className="rs-pct-input"
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={0.01}
+                            value={row.sales_pct}
+                            onChange={(e) => updateSplit(idx, 'sales_pct', e.target.value)}
+                          />
+                        )}
                       </td>
                       <td className="rs-table__td rs-table__td--pct">
-                        <input
-                          className="rs-pct-input"
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={0.01}
-                          value={row.comm_pct}
-                          onChange={(e) => updateSplit(idx, 'comm_pct', e.target.value)}
-                        />
+                        {readOnly ? (
+                          <span className="rs-readonly-text">{row.comm_pct}%</span>
+                        ) : (
+                          <input
+                            className="rs-pct-input"
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={0.01}
+                            value={row.comm_pct}
+                            onChange={(e) => updateSplit(idx, 'comm_pct', e.target.value)}
+                          />
+                        )}
                       </td>
-                      <td className="rs-table__td rs-table__td--action">
-                        <button
-                          className="rs-remove-btn"
-                          onClick={() => removeSplit(idx)}
-                          aria-label={`Remove ${rep?.name ?? 'rep'}`}
-                          title="Remove"
-                        >
-                          &times;
-                        </button>
-                      </td>
+                      {!readOnly && (
+                        <td className="rs-table__td rs-table__td--action">
+                          <button
+                            className="rs-remove-btn"
+                            onClick={() => removeSplit(idx)}
+                            aria-label={`Remove ${rep?.name ?? 'rep'}`}
+                            title="Remove"
+                          >
+                            &times;
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
@@ -157,30 +180,32 @@ export const RepSplitsSection: React.FC<RepSplitsSectionProps> = ({ repSplits })
                     <span className="rs-total-value">{validation.commTotal}%</span>
                     {commErr && <span className="rs-total-hint">must be 100%</span>}
                   </td>
-                  <td className="rs-table__td" />
+                  {!readOnly && <td className="rs-table__td" />}
                 </tr>
               </tfoot>
             </table>
           </div>
         )}
 
-        <div className="rs-add-bar">
-          <SearchableSelect
-            value={addRepId}
-            onChange={setAddRepId}
-            options={addRepOptions}
-            placeholder={availableReps.length ? '— Add a rep —' : 'All reps assigned'}
-            disabled={availableReps.length === 0}
-          />
-          <Button
-            size="S"
-            variant="secondary"
-            disabled={!addRepId}
-            onClick={handleAdd}
-          >
-            + Add
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="rs-add-bar">
+            <SearchableSelect
+              value={addRepId}
+              onChange={setAddRepId}
+              options={addRepOptions}
+              placeholder={availableReps.length ? '— Add a rep —' : 'All reps assigned'}
+              disabled={availableReps.length === 0}
+            />
+            <Button
+              size="S"
+              variant="secondary"
+              disabled={!addRepId}
+              onClick={handleAdd}
+            >
+              + Add
+            </Button>
+          </div>
+        )}
       </Panel>
 
       {/* Validation summary */}

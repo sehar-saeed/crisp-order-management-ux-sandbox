@@ -1,0 +1,407 @@
+/* ── Entry Field Customization Full Page ── */
+
+.ec-page {
+  padding: 1.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.ec-page__header {
+  flex-shrink: 0;
+}
+
+.ec-page__header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ec-page__desc {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  color: var(--cool-gray-50);
+  margin: 0.25rem 0 0;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+.ec-page__header-stats {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 2rem;
+}
+
+.ec-page__stat {
+  font-family: var(--font-primary);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cool-gray-40);
+  background: var(--cool-gray-95);
+  padding: 3px 10px;
+  border-radius: 10px;
+}
+
+.ec-page__stat--override {
+  color: var(--teal-vivid-30);
+  background: var(--teal-vivid-95);
+}
+
+.ec-page__stat--dirty {
+  color: #7a4c00;
+  background: #fff5e0;
+}
+
+.ec-page__header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cool-gray-90);
+}
+
+/* ── Tabs ── */
+
+.ec-page__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--cool-gray-90);
+  flex-shrink: 0;
+}
+
+.ec-page__tab {
+  padding: 0.6rem 1.25rem;
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cool-gray-50);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ec-page__tab:hover {
+  color: var(--cool-gray-20);
+}
+
+.ec-page__tab--active {
+  color: var(--teal-vivid-30);
+  border-bottom-color: var(--teal-vivid-40);
+  font-weight: 600;
+}
+
+/* ── Two-Panel Body ── */
+
+.ec-page__body {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.ec-page__left {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.ec-page__right {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* ── Left Panel: Search ── */
+
+.ec-page__search {
+  padding: 0.75rem 0.75rem 0;
+  flex-shrink: 0;
+}
+
+/* ── Left Panel: Field List ── */
+
+.ec-page__field-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+
+.ec-page__field-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-left: 3px solid transparent;
+  gap: 0.5rem;
+}
+
+.ec-page__field-item:hover {
+  background: var(--cool-gray-95);
+}
+
+.ec-page__field-item--selected {
+  background: var(--teal-vivid-95);
+  border-left-color: var(--teal-vivid-50);
+}
+
+.ec-page__field-item--selected:hover {
+  background: var(--teal-vivid-90);
+}
+
+.ec-page__field-item--hidden {
+  opacity: 0.5;
+}
+
+.ec-page__field-item--locked .ec-page__field-item-caption {
+  color: var(--cool-gray-30);
+}
+
+.ec-page__field-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.ec-page__field-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ec-page__field-item-caption {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cool-gray-10);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ec-page__field-item--hidden .ec-page__field-item-caption {
+  text-decoration: line-through;
+  color: var(--cool-gray-60);
+}
+
+.ec-page__field-item-meta {
+  font-family: var(--font-primary);
+  font-size: 11px;
+  color: var(--cool-gray-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ec-page__field-item-right {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.ec-page__lock {
+  font-size: 12px;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  line-height: 1;
+}
+
+.ec-page__override-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal-vivid-40);
+  flex-shrink: 0;
+}
+
+.ec-page__override-dot--inline {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.ec-page__arrow-btn {
+  background: none;
+  border: 1px solid var(--cool-gray-80);
+  border-radius: 4px;
+  font-size: 9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--cool-gray-50);
+  transition: background 0.15s;
+}
+
+.ec-page__arrow-btn:hover:not(:disabled) {
+  background: var(--cool-gray-95);
+}
+
+.ec-page__arrow-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.ec-page__no-results {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--cool-gray-50);
+  font-family: var(--font-primary);
+  font-size: 13px;
+}
+
+/* ── Right Panel: Field Editor ── */
+
+.ec-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ec-editor__header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cool-gray-90);
+}
+
+.ec-editor__title {
+  font-family: var(--font-primary);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cool-gray-10);
+  margin: 0 0 0.375rem;
+}
+
+.ec-editor__source {
+  font-family: var(--font-primary);
+  font-size: 12px;
+  color: var(--cool-gray-50);
+}
+
+.ec-editor__source code {
+  font-family: 'Fira Code', monospace;
+  background: var(--cool-gray-95);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.ec-editor__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ec-editor__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ec-editor__section-title {
+  font-family: var(--font-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cool-gray-50);
+  margin: 0;
+}
+
+.ec-editor__field--overridden {
+  position: relative;
+  border-left: 3px solid var(--teal-vivid-50, #38b2ac);
+  padding-left: 0.75rem;
+}
+
+.ec-editor__field-default {
+  display: block;
+  font-family: var(--font-primary);
+  font-size: 11px;
+  color: var(--cool-gray-60);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.ec-editor__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-primary);
+  font-size: 14px;
+  color: var(--cool-gray-20);
+  cursor: pointer;
+}
+
+.ec-editor__locked-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--cool-gray-50);
+  background: var(--cool-gray-97, #fafbfc);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.ec-editor__info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.ec-editor__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ec-editor__info-label {
+  font-family: var(--font-primary);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cool-gray-60);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ec-editor__info-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  background: var(--cool-gray-95);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--cool-gray-20);
+  width: fit-content;
+}
+
+.ec-editor__reset {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--cool-gray-90);
+}
+
+.ec-page__empty-editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--cool-gray-50);
+  font-family: var(--font-primary);
+  font-size: 14px;
+}

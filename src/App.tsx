@@ -4,9 +4,10 @@ import { NotificationContainer } from './components/NotificationContainer';
 import { LandingPage } from './pages/LandingPage';
 import { IncomingData } from './pages/IncomingData';
 import { OrderBrowsePage } from './pages/orders/OrderBrowsePage';
-import { OrderDetailPage } from './pages/orders/OrderDetailPage';
+import { OrderEditPage } from './pages/orders/OrderEditPage';
 import { ColumnCustomizationPage } from './pages/orders/ColumnCustomizationPage';
-import { OrderEntryPage } from './pages/orders/OrderEntryPage';
+import { EntryFieldCustomizationPage } from './pages/orders/EntryFieldCustomizationPage';
+import { NewOrderEntryPage } from './pages/orders/NewOrderEntryPage';
 import { SupplierBrowse } from './pages/SupplierBrowse';
 import { SupplierDetail } from './pages/SupplierDetail';
 import { PlaceholderPage } from './pages/PlaceholderPage';
@@ -23,9 +24,10 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/incoming-data" element={<IncomingData />} />
               <Route path="/orders" element={<OrderBrowsePage />} />
-              <Route path="/orders/new" element={<OrderEntryPage />} />
+              <Route path="/orders/new" element={<NewOrderEntryPage />} />
+              <Route path="/orders/customize-entry-fields" element={<EntryFieldCustomizationPage />} />
               <Route path="/orders/customize-columns" element={<ColumnCustomizationPage />} />
-              <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="/orders/:orderId" element={<OrderEditPage />} />
               <Route path="/suppliers" element={<SupplierBrowse />} />
               <Route path="/suppliers/:supplierId" element={<SupplierDetail />} />
               <Route path="/retailers" element={<PlaceholderPage title="Retailer Management" />} />
