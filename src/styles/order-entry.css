@@ -2,7 +2,8 @@
 
 .oe-page {
   padding: 1.5rem 2rem 3rem;
-  max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .oe-page__header {
@@ -69,6 +70,7 @@
 .oe-sections-container {
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
 .oe-tab-content {
@@ -76,6 +78,98 @@
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 1.5rem;
+}
+
+/* ── Line Items 2-column layout (items + rep splits sidebar) ── */
+
+/* (sidebar layout removed — Rep Splits is now full-width below Order Items) */
+
+/* ── Inline Order Info Sections (full-width form layout) ── */
+
+.oe-info-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0.75rem;
+}
+
+.oe-info-section {
+  padding: 1rem 0;
+}
+
+.oe-info-section + .oe-info-section {
+  border-top: 1px solid var(--cool-gray-92, #e5e7eb);
+}
+
+.oe-info-section__title {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--cool-gray-40, #6b7280);
+  margin: 0 0 0.75rem;
+}
+
+.oe-info-section__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem 1.5rem;
+}
+
+.oe-info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.oe-info-field--wide {
+  grid-column: 1 / -1;
+}
+
+.oe-info-field__label {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cool-gray-40, #6b7280);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.oe-info-field__auto {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--cool-gray-90, #e5e7eb);
+  color: var(--cool-gray-40, #6b7280);
+}
+
+.oe-info-field__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue-50, #2563eb);
+  flex-shrink: 0;
+}
+
+.oe-info-field__value {
+  font-size: 13px;
+  color: var(--cool-gray-10, #1f2937);
+}
+
+.oe-info-field--readonly .oe-info-field__value {
+  color: var(--cool-gray-30, #4b5563);
+}
+
+@media (max-width: 900px) {
+  .oe-info-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ── Section Wrapper ── */
@@ -152,7 +246,7 @@
 .oe-parties {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: 0.75rem;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -187,7 +281,7 @@
 .oe-inline-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: end;
 }
 
@@ -339,20 +433,25 @@
 
 /* ── Rep Splits ── */
 
+.rs-section .oe-info-section__title {
+  margin-bottom: 0;
+}
+
 .rs-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .rs-header__actions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .rs-empty {
-  padding: 2rem;
-  text-align: center;
+  padding: 1.25rem 0;
   font-family: var(--font-primary);
   font-size: 13px;
   color: var(--cool-gray-60);
@@ -361,6 +460,7 @@
 
 .rs-table-wrap {
   overflow-x: auto;
+  margin-top: 0.75rem;
 }
 
 .rs-table {
@@ -516,7 +616,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 0 0;
   border-top: 1px solid var(--cool-gray-90);
   background: var(--cool-gray-95);
 }
@@ -999,7 +1099,14 @@
 
 /* ── Responsive ── */
 
+@media (max-width: 900px) {
+  /* (sidebar layout removed) */
+}
+
 @media (max-width: 700px) {
+  .oe-page {
+    padding: 1rem 1rem 2rem;
+  }
   .oe-type-seg {
     flex-direction: column;
   }
@@ -1012,6 +1119,9 @@
   }
   .oe-inline-fields,
   .oe-address-grid {
+    grid-template-columns: 1fr;
+  }
+  .oe-info-section__grid {
     grid-template-columns: 1fr;
   }
 }

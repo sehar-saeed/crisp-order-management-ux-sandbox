@@ -61,7 +61,7 @@ function field(resolved: ResolvedEntryField[], id: string): ResolvedEntryField |
 /** IDs of fields that stay in the core top section (outside tabs). */
 const CORE_FIELD_IDS = new Set(['order_type', 'from_party', 'to_party', 'po_number', 'po_date', 'test_order']);
 
-type EntryTabId = 'line_items' | 'order_info' | 'history';
+type EntryTabId = 'line_items' | 'history';
 
 export const NewOrderEntryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -81,6 +81,28 @@ export const NewOrderEntryPage: React.FC = () => {
   const [billToAddress, setBillToAddress] = useState<Address>(EMPTY_ADDRESS);
   const [shipToAddress, setShipToAddress] = useState<Address>(EMPTY_ADDRESS);
   const [showCustomize, setShowCustomize] = useState(false);
+
+  const [extraFields, setExtraFields] = useState<Record<string, string>>(() => ({
+    ship_date: '',
+    cancel_date: '',
+    invoice_status: 'Open',
+    shipment_status: 'Pending',
+    comm_status: 'Pending',
+    currency: 'USD',
+    payment_terms: 'Net 30',
+    department: '',
+    division: '',
+    buyer_ref: '',
+    vendor_ref: '',
+    special_instructions: '',
+    fob: '',
+    carrier: '',
+    warehouse: '',
+  }));
+
+  const updateExtraField = useCallback((id: string, value: string) => {
+    setExtraFields((prev) => ({ ...prev, [id]: value }));
+  }, []);
 
   const [headerDC, setHeaderDC] = useState<DiscountChargeEntry[]>([]);
   const [itemDCMap, setItemDCMap] = useState<Record<string, DiscountChargeEntry[]>>({});
@@ -393,121 +415,158 @@ export const NewOrderEntryPage: React.FC = () => {
 
   /* ── Order Info tab: address + configurable fields ── */
 
-  const renderOrderInfoTab = () => {
-    const billField = typeOption.showBillTo ? field(hv, 'bill_to') : undefined;
-    const shipField = typeOption.showShipTo ? field(hv, 'ship_to') : undefined;
+  const COMPUTED_FIELD_IDS = new Set(['total_amount', 'item_count']);
+  const WIDE_FIELD_IDS = new Set(['special_instructions', 'bill_to', 'ship_to']);
 
-    const addressFields: { id: string; seq: number; render: () => React.ReactNode }[] = [];
+  const FIELD_GROUPS: { key: string; title: string; fieldIds: string[] }[] = [
+    { key: 'addresses', title: 'Addresses', fieldIds: ['bill_to', 'ship_to'] },
+    { key: 'dates_status', title: 'Dates & Status', fieldIds: ['ship_date', 'cancel_date', 'invoice_status', 'shipment_status', 'comm_status'] },
+    { key: 'financial', title: 'Financial', fieldIds: ['total_amount', 'item_count', 'currency', 'payment_terms'] },
+    { key: 'references', title: 'References & Additional', fieldIds: ['department', 'division', 'buyer_ref', 'vendor_ref', 'special_instructions', 'fob', 'carrier', 'warehouse'] },
+  ];
 
-    if (billField) {
-      addressFields.push({
-        id: 'bill_to',
-        seq: billField.sequence,
-        render: () => (
-          <div key="bill_to" className="od-hv__row">
-            <span className="od-hv__label">{billField.caption}</span>
-            <span className="od-hv__value">
-              {billToAddress.name ? formatAddress(billToAddress) : (
-                <span style={{ color: 'var(--cool-gray-50)' }}>
-                  {billToParty ? 'No billing address on file' : `Select a ${typeOption.fromLabel.toLowerCase()} to populate`}
-                </span>
-              )}
-            </span>
-            {billField.has_override && (
-              <span className="od-hv__badge" title="Customized caption or sequence">Customized</span>
-            )}
-          </div>
-        ),
-      });
+  const SELECT_OPTIONS: Record<string, string[]> = {
+    invoice_status: ['Open', 'Partial', 'Invoiced', 'Cancelled'],
+    shipment_status: ['Pending', 'Partial', 'Shipped', 'Delivered', 'Cancelled'],
+    comm_status: ['Pending', 'Calculated', 'Paid', 'Waived'],
+    currency: ['USD', 'CAD', 'EUR', 'GBP', 'MXN'],
+    payment_terms: ['Net 15', 'Net 30', 'Net 45', 'Net 60', 'Net 90', 'Due on Receipt', '2/10 Net 30'],
+    carrier: ['UPS Ground', 'UPS Next Day', 'FedEx Ground', 'FedEx Express', 'USPS Priority', 'LTL Freight', 'Customer Pickup'],
+  };
+
+  const SEARCHABLE_OPTIONS: Record<string, SearchableOption[]> = useMemo(() => ({
+    department: [
+      { id: 'grocery', label: 'Grocery' },
+      { id: 'dairy', label: 'Dairy' },
+      { id: 'frozen', label: 'Frozen' },
+      { id: 'produce', label: 'Produce' },
+      { id: 'bakery', label: 'Bakery' },
+      { id: 'deli', label: 'Deli' },
+      { id: 'meat', label: 'Meat & Seafood' },
+      { id: 'beverages', label: 'Beverages' },
+      { id: 'hba', label: 'Health & Beauty' },
+      { id: 'household', label: 'Household' },
+      { id: 'general', label: 'General Merchandise' },
+    ],
+    division: [
+      { id: 'east', label: 'East Division' },
+      { id: 'west', label: 'West Division' },
+      { id: 'central', label: 'Central Division' },
+      { id: 'south', label: 'South Division' },
+      { id: 'northeast', label: 'Northeast Division' },
+    ],
+  }), []);
+
+  const TEXTAREA_FIELD_IDS = new Set(['special_instructions']);
+
+  function renderFieldControl(f: ResolvedEntryField): React.ReactNode {
+    if (f.field_id === 'bill_to') {
+      return billToAddress.name
+        ? <span className="oi-field-val">{formatAddress(billToAddress)}</span>
+        : <span className="oi-field-val oi-field-val--placeholder">
+            {billToParty ? 'No billing address on file' : `Select a ${typeOption.fromLabel.toLowerCase()} to populate`}
+          </span>;
+    }
+    if (f.field_id === 'ship_to') {
+      return shipToAddress.name
+        ? <span className="oi-field-val">{formatAddress(shipToAddress)}</span>
+        : <span className="oi-field-val oi-field-val--placeholder">
+            {shipToLocations.length
+              ? 'Choose a location in the order form'
+              : `Select a ${(typeOption.fromKind === 'retailer' ? 'retailer' : 'party')} first`}
+          </span>;
+    }
+    if (f.field_id === 'total_amount') {
+      return <span className="oi-field-val oi-field-val--computed">
+        {orderItems.hasItems ? formatCurrency(orderItems.orderTotal) : '$0.00'}
+      </span>;
+    }
+    if (f.field_id === 'item_count') {
+      return <span className="oi-field-val oi-field-val--computed">
+        {orderItems.hasItems ? `${orderItems.items.length}` : '0'}
+      </span>;
     }
 
-    if (shipField) {
-      addressFields.push({
-        id: 'ship_to',
-        seq: shipField.sequence,
-        render: () => (
-          <div key="ship_to" className="od-hv__row">
-            <span className="od-hv__label">{shipField.caption}</span>
-            <span className="od-hv__value">
-              {shipToAddress.name ? formatAddress(shipToAddress) : (
-                <span style={{ color: 'var(--cool-gray-50)' }}>
-                  {shipToLocations.length
-                    ? 'Choose a location in the order form'
-                    : `Select a ${(typeOption.fromKind === 'retailer' ? 'retailer' : 'party')} first`}
-                </span>
-              )}
-            </span>
-            {shipField.has_override && (
-              <span className="od-hv__badge" title="Customized caption or sequence">Customized</span>
-            )}
-          </div>
-        ),
-      });
+    const val = extraFields[f.field_id] ?? '';
+
+    if (f.field_type === 'date') {
+      return <input className="oi-field-input" type="date" value={val}
+        onChange={(e) => updateExtraField(f.field_id, e.target.value)} />;
     }
 
-    const allFields = [
-      ...detailTabFields.map((f) => ({
-        id: f.field_id,
-        seq: f.sequence,
-        render: () => (
-          <div key={f.field_id} className="od-hv__row">
-            <span className="od-hv__label">{f.caption}</span>
-            <span className="od-hv__value" style={{ color: 'var(--cool-gray-50)' }}>
-              {resolveEntryFieldValue(f)}
-            </span>
-            {f.has_override && (
-              <span className="od-hv__badge" title="Customized caption or sequence">Customized</span>
-            )}
-          </div>
-        ),
-      })),
-      ...addressFields,
-    ].sort((a, b) => a.seq - b.seq);
-
-    if (allFields.length === 0) {
+    if (SELECT_OPTIONS[f.field_id]) {
       return (
-        <div className="od-hv__empty">
-          No additional order info fields for this order type.
-        </div>
+        <select className="oi-field-select" value={val}
+          onChange={(e) => updateExtraField(f.field_id, e.target.value)}>
+          <option value="">— Select —</option>
+          {SELECT_OPTIONS[f.field_id].map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
       );
     }
 
-    return (
-      <div className="od-hv">
-        <p className="od-hv__hint">
-          Showing {allFields.length} order info field{allFields.length !== 1 ? 's' : ''} in config sequence order. View-only.
-        </p>
-        <div className="od-hv__list">
-          {allFields.map((f) => f.render())}
-        </div>
-      </div>
-    );
-  };
-
-  function resolveEntryFieldValue(f: ResolvedEntryField): string {
-    switch (f.field_id) {
-      case 'bill_to':              return billToAddress.name || '—';
-      case 'ship_to':              return shipToAddress.name || '—';
-      case 'ship_date':            return '—';
-      case 'cancel_date':          return '—';
-      case 'invoice_status':       return 'Open';
-      case 'shipment_status':      return 'Pending';
-      case 'comm_status':          return 'Pending';
-      case 'total_amount':         return orderItems.hasItems ? formatCurrency(orderItems.orderTotal) : '$0.00';
-      case 'item_count':           return orderItems.hasItems ? `${orderItems.items.length}` : '0';
-      case 'currency':             return 'USD';
-      case 'payment_terms':        return 'Net 30';
-      case 'department':           return '—';
-      case 'division':             return '—';
-      case 'buyer_ref':            return '—';
-      case 'vendor_ref':           return '—';
-      case 'special_instructions': return '—';
-      case 'fob':                  return '—';
-      case 'carrier':              return '—';
-      case 'warehouse':            return '—';
-      default:                     return '—';
+    if (SEARCHABLE_OPTIONS[f.field_id]) {
+      return (
+        <SearchableSelect
+          value={val}
+          onChange={(id) => updateExtraField(f.field_id, id)}
+          options={SEARCHABLE_OPTIONS[f.field_id]}
+          placeholder={`Search ${f.caption.toLowerCase()}…`}
+          emptyMessage={`No matching ${f.caption.toLowerCase()}`}
+        />
+      );
     }
+
+    if (TEXTAREA_FIELD_IDS.has(f.field_id)) {
+      return (
+        <textarea className="oi-field-textarea" rows={3} value={val}
+          placeholder={`Enter ${f.caption.toLowerCase()}`}
+          onChange={(e) => updateExtraField(f.field_id, e.target.value)} />
+      );
+    }
+
+    return <input className="oi-field-input" type="text" value={val}
+      placeholder={`Enter ${f.caption.toLowerCase()}`}
+      onChange={(e) => updateExtraField(f.field_id, e.target.value)} />;
   }
+
+  const orderInfoSections = useMemo(() => {
+    const billVisible = typeOption.showBillTo && !!field(hv, 'bill_to');
+    const shipVisible = typeOption.showShipTo && !!field(hv, 'ship_to');
+
+    const visibleSet = new Set(
+      detailTabFields
+        .filter((f) => {
+          if (f.field_id === 'bill_to') return billVisible;
+          if (f.field_id === 'ship_to') return shipVisible;
+          return true;
+        })
+        .map((f) => f.field_id),
+    );
+
+    const fieldMap = new Map(detailTabFields.map((f) => [f.field_id, f]));
+
+    const populated = FIELD_GROUPS
+      .map((g) => ({
+        ...g,
+        fields: g.fieldIds
+          .filter((id) => visibleSet.has(id))
+          .map((id) => fieldMap.get(id)!)
+          .filter(Boolean),
+      }))
+      .filter((g) => g.fields.length > 0);
+
+    const ungrouped = detailTabFields
+      .filter((f) => visibleSet.has(f.field_id) && !FIELD_GROUPS.some((g) => g.fieldIds.includes(f.field_id)))
+      .sort((a, b) => a.sequence - b.sequence);
+
+    if (ungrouped.length > 0) {
+      populated.push({ key: 'other', title: 'Other', fieldIds: ungrouped.map((f) => f.field_id), fields: ungrouped });
+    }
+
+    return populated;
+  }, [hv, detailTabFields, typeOption, billToParty, shipToLocations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="oe-page">
@@ -531,9 +590,6 @@ export const NewOrderEntryPage: React.FC = () => {
             entries={headerDC}
             onClick={() => setDcModal({ scope: 'header' })}
           />
-          <Button variant="text" size="S" onClick={() => setShowCustomize(true)}>
-            Customize Entry Fields
-          </Button>
           <Button variant="secondary" size="S" onClick={() => navigate('/orders')}>
             Cancel
           </Button>
@@ -543,13 +599,47 @@ export const NewOrderEntryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Core fields (always visible, outside tabs) ── */}
+      {/* ── Core fields (always visible at top) ── */}
       <div className="oe-sections-container">
         {coreSections}
       </div>
 
-      {/* ── Tabs ── */}
-      <div className="od-tabs" style={{ marginTop: '1rem' }}>
+      {/* ── Order Info sections (inline, between core fields and line items) ── */}
+      {orderInfoSections.length > 0 && (
+        <div className="oe-info-sections">
+          {orderInfoSections.map((g) => (
+            <section key={g.key} className="oe-info-section">
+              <h3 className="oe-info-section__title">{g.title}</h3>
+              <div className="oe-info-section__grid">
+                {g.fields.map((f) => {
+                  const cls = [
+                    'oe-info-field',
+                    COMPUTED_FIELD_IDS.has(f.field_id) && 'oe-info-field--readonly',
+                    WIDE_FIELD_IDS.has(f.field_id) && 'oe-info-field--wide',
+                  ].filter(Boolean).join(' ');
+                  return (
+                    <div key={f.field_id} className={cls}>
+                      <label className="oe-info-field__label">
+                        {f.caption}
+                        {COMPUTED_FIELD_IDS.has(f.field_id) && (
+                          <span className="oe-info-field__auto">auto</span>
+                        )}
+                        {f.has_override && (
+                          <span className="oe-info-field__dot" title="Customized" />
+                        )}
+                      </label>
+                      {renderFieldControl(f)}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {/* ── Tabs: Line Items + History ── */}
+      <div className="od-tabs" style={{ marginTop: '1.25rem' }}>
         <button
           className={`od-tabs__tab${activeTab === 'line_items' ? ' od-tabs__tab--active' : ''}`}
           onClick={() => setActiveTab('line_items')}
@@ -557,44 +647,38 @@ export const NewOrderEntryPage: React.FC = () => {
           Line Items
         </button>
         <button
-          className={`od-tabs__tab${activeTab === 'order_info' ? ' od-tabs__tab--active' : ''}`}
-          onClick={() => setActiveTab('order_info')}
-        >
-          Order Info
-        </button>
-        <button
           className={`od-tabs__tab${activeTab === 'history' ? ' od-tabs__tab--active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           History / Modifications ({history.length})
         </button>
+        <button
+          className="od-tabs__customize"
+          onClick={() => setShowCustomize(true)}
+          title="Customize which fields are visible, their order, and captions"
+        >
+          &#x2699; Customize Fields
+        </button>
       </div>
 
-      {/* ── Tab: Line Items (rep splits + items + transactions) ── */}
+      {/* ── Tab: Line Items ── */}
       {activeTab === 'line_items' && (
         <div className="oe-tab-content">
-          {typeOption.requireRepSplits && (
-            <RepSplitsSection repSplits={repSplits} showGetDefaults />
-          )}
           <OrderItemsSection
             orderItems={orderItems}
             txnConfig={txn}
             itemDCMap={itemDCMap}
             onOpenItemDC={handleOpenItemDC}
           />
+          {typeOption.requireRepSplits && (
+            <RepSplitsSection repSplits={repSplits} showGetDefaults />
+          )}
           <Flex style={{ gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
             <Button variant="secondary" onClick={() => navigate('/orders')}>
               Cancel
             </Button>
             <Button onClick={handleSave}>Save Order</Button>
           </Flex>
-        </div>
-      )}
-
-      {/* ── Tab: Order Info (addresses + configurable fields) ── */}
-      {activeTab === 'order_info' && (
-        <div className="od-tab-panel">
-          {renderOrderInfoTab()}
         </div>
       )}
 

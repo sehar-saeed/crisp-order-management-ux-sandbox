@@ -897,6 +897,30 @@
   border-bottom-color: var(--teal-vivid-30);
 }
 
+.od-tabs__customize {
+  margin-left: auto;
+  font-family: var(--font-primary);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cool-gray-50);
+  background: none;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.od-tabs__customize:hover {
+  color: var(--blue-50, #2563eb);
+  background: var(--blue-98, #eff6ff);
+}
+
 /* ── Tab content panel ── */
 
 .od-tab-panel {
@@ -1152,6 +1176,182 @@
 
 /* ── Header Values tab ── */
 
+/* ── Order Info Tab — grouped 2-column layout ── */
+
+.oi-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.oi-tab-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--cool-gray-50);
+  font-size: 14px;
+}
+
+.oi-tab__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.oi-tab__section-title {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--cool-gray-40, #6b7280);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--cool-gray-90, #e5e7eb);
+  margin: 0 0 0.75rem;
+}
+
+.oi-tab__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 2rem;
+}
+
+.oi-tab__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oi-tab__field--readonly {
+  opacity: 1;
+}
+
+.oi-tab__field-label {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cool-gray-40, #6b7280);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.oi-tab__auto-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--cool-gray-90, #e5e7eb);
+  color: var(--cool-gray-40, #6b7280);
+}
+
+.oi-tab__custom-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue-50, #2563eb);
+  flex-shrink: 0;
+}
+
+/* ── Field values (read-only) ── */
+
+.oi-field-val {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 14px;
+  color: var(--cool-gray-10, #1f2937);
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+.oi-field-val--placeholder {
+  color: var(--cool-gray-50, #6b7280);
+  font-style: italic;
+}
+
+.oi-field-val--computed {
+  font-weight: 600;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--cool-gray-10, #1f2937);
+}
+
+/* ── Field inputs (editable) ── */
+
+.oi-field-input {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 14px;
+  color: var(--cool-gray-10, #1f2937);
+  padding: 6px 10px;
+  border: 1px solid var(--cool-gray-80, #d1d5db);
+  border-radius: 6px;
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.oi-field-input:focus {
+  outline: none;
+  border-color: var(--blue-50, #2563eb);
+  box-shadow: 0 0 0 2px var(--blue-95, #dbeafe);
+}
+
+/* ── Field select (dropdown) ── */
+
+.oi-field-select {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 14px;
+  color: var(--cool-gray-10, #1f2937);
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--cool-gray-80, #d1d5db);
+  border-radius: 6px;
+  background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.oi-field-select:focus {
+  outline: none;
+  border-color: var(--blue-50, #2563eb);
+  box-shadow: 0 0 0 2px var(--blue-95, #dbeafe);
+}
+
+/* ── Field textarea ── */
+
+.oi-field-textarea {
+  font-family: var(--font-primary, sans-serif);
+  font-size: 14px;
+  color: var(--cool-gray-10, #1f2937);
+  padding: 8px 10px;
+  border: 1px solid var(--cool-gray-80, #d1d5db);
+  border-radius: 6px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.oi-field-textarea:focus {
+  outline: none;
+  border-color: var(--blue-50, #2563eb);
+  box-shadow: 0 0 0 2px var(--blue-95, #dbeafe);
+}
+
+/* SearchableSelect inside oi-tab grid needs full width */
+.oi-tab__field .ss-wrap {
+  width: 100%;
+}
+
+/* ── Legacy od-hv classes (used by OrderEditPage) ── */
+
 .od-hv__hint {
   font-size: 12px;
   color: var(--cool-gray-50);
@@ -1207,6 +1407,21 @@
   background: var(--blue-95, #dbeafe);
   color: var(--blue-40, #2563eb);
   letter-spacing: 0.01em;
+}
+
+/* ── Responsive ── */
+
+@media (min-width: 1100px) {
+  .oi-tab__grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .oi-tab__grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
 }
 
 /* ── Print styles ── */

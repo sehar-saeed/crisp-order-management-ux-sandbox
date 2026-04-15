@@ -62,7 +62,14 @@ function resolveFieldValue(field: ResolvedEntryField, order: OrderBrowseRow): st
   }
 }
 
-type TabId = 'lines' | 'order_info' | 'rep_splits' | 'history';
+type TabId = 'lines' | 'history';
+
+const INFO_FIELD_GROUPS: { key: string; title: string; fieldIds: string[] }[] = [
+  { key: 'addresses', title: 'Addresses', fieldIds: ['bill_to', 'ship_to'] },
+  { key: 'dates_status', title: 'Dates & Status', fieldIds: ['ship_date', 'cancel_date', 'invoice_status', 'shipment_status', 'comm_status'] },
+  { key: 'financial', title: 'Financial', fieldIds: ['total_amount', 'item_count', 'currency', 'payment_terms'] },
+  { key: 'references', title: 'References & Additional', fieldIds: ['department', 'division', 'buyer_ref', 'vendor_ref', 'special_instructions', 'fob', 'carrier', 'warehouse'] },
+];
 
 export const OrderEditPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -93,6 +100,23 @@ export const OrderEditPage: React.FC = () => {
     () => header.visible.filter((f) => !EDIT_CORE_IDS.has(f.field_id)),
     [header.visible, EDIT_CORE_IDS],
   );
+
+  const infoSections = useMemo(() => {
+    const fieldMap = new Map(editPageHeaderValueFields.map((f) => [f.field_id, f]));
+    const populated = INFO_FIELD_GROUPS
+      .map((g) => ({
+        ...g,
+        fields: g.fieldIds.map((id) => fieldMap.get(id)).filter(Boolean) as typeof editPageHeaderValueFields,
+      }))
+      .filter((g) => g.fields.length > 0);
+
+    const grouped = new Set(INFO_FIELD_GROUPS.flatMap((g) => g.fieldIds));
+    const ungrouped = editPageHeaderValueFields.filter((f) => !grouped.has(f.field_id));
+    if (ungrouped.length > 0) {
+      populated.push({ key: 'other', title: 'Other', fieldIds: ungrouped.map((f) => f.field_id), fields: ungrouped });
+    }
+    return populated;
+  }, [editPageHeaderValueFields]);
 
   const [headerDC, setHeaderDC] = useState<DiscountChargeEntry[]>([]);
   const [itemDCMap, setItemDCMap] = useState<Record<string, DiscountChargeEntry[]>>({});
@@ -248,25 +272,40 @@ export const OrderEditPage: React.FC = () => {
         </div>
       </Panel>
 
+      {/* ── Inline Order Info sections ── */}
+      {infoSections.length > 0 && (
+        <div className="oe-info-sections">
+          {infoSections.map((g) => (
+            <section key={g.key} className="oe-info-section">
+              <h3 className="oe-info-section__title">{g.title}</h3>
+              <div className="oe-info-section__grid">
+                {g.fields.map((f) => {
+                  const wide = ['special_instructions', 'bill_to', 'ship_to'].includes(f.field_id);
+                  return (
+                    <div key={f.field_id} className={`oe-info-field oe-info-field--readonly${wide ? ' oe-info-field--wide' : ''}`}>
+                      <span className="oe-info-field__label">
+                        {f.caption}
+                        {f.has_override && (
+                          <span className="oe-info-field__dot" title="Customized" />
+                        )}
+                      </span>
+                      <span className="oe-info-field__value">{resolveFieldValue(f, order)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
       {/* ── Tabs ── */}
-      <div className="od-tabs">
+      <div className="od-tabs" style={{ marginTop: '1.25rem' }}>
         <button
           className={`od-tabs__tab${activeTab === 'lines' ? ' od-tabs__tab--active' : ''}`}
           onClick={() => setActiveTab('lines')}
         >
           Line Items ({lineItems.length})
-        </button>
-        <button
-          className={`od-tabs__tab${activeTab === 'order_info' ? ' od-tabs__tab--active' : ''}`}
-          onClick={() => setActiveTab('order_info')}
-        >
-          Order Info
-        </button>
-        <button
-          className={`od-tabs__tab${activeTab === 'rep_splits' ? ' od-tabs__tab--active' : ''}`}
-          onClick={() => setActiveTab('rep_splits')}
-        >
-          Rep Splits ({repSplits.splits.length})
         </button>
         <button
           className={`od-tabs__tab${activeTab === 'history' ? ' od-tabs__tab--active' : ''}`}
@@ -276,7 +315,7 @@ export const OrderEditPage: React.FC = () => {
         </button>
       </div>
 
-      {/* ── Tab: Line Items ── */}
+      {/* ── Tab: Line Items + Rep Splits ── */}
       {activeTab === 'lines' && (
         <div className="od-tab-panel od-tab-panel--flush">
           <div className="od-line-table-wrap">
@@ -325,20 +364,9 @@ export const OrderEditPage: React.FC = () => {
               </tfoot>
             </table>
           </div>
-        </div>
-      )}
-
-      {/* ── Tab: Order Info (config-driven) ── */}
-      {activeTab === 'order_info' && (
-        <div className="od-tab-panel">
-          <OrderDetailsTab fields={editPageHeaderValueFields} order={order} />
-        </div>
-      )}
-
-      {/* ── Tab: Rep Splits ── */}
-      {activeTab === 'rep_splits' && (
-        <div className="od-tab-panel">
-          <RepSplitsSection repSplits={repSplits} showGetDefaults readOnly />
+          <div style={{ padding: '0 1rem 1rem' }}>
+            <RepSplitsSection repSplits={repSplits} showGetDefaults readOnly />
+          </div>
         </div>
       )}
 
@@ -495,39 +523,3 @@ function HistoryModificationsTab({ entries }: { entries: OrderHistoryEntry[] }) 
   );
 }
 
-/* ── Order Info Tab ── */
-
-function OrderDetailsTab({
-  fields,
-  order,
-}: {
-  fields: ResolvedEntryField[];
-  order: OrderBrowseRow;
-}) {
-  if (fields.length === 0) {
-    return (
-      <div className="od-hv__empty">
-        No order info fields configured. Open field customization to add fields.
-      </div>
-    );
-  }
-
-  return (
-    <div className="od-hv">
-      <p className="od-hv__hint">
-        Showing {fields.length} configured field{fields.length !== 1 ? 's' : ''} in sequence order. View-only.
-      </p>
-      <div className="od-hv__list">
-        {fields.map((f) => (
-          <div key={f.field_id} className="od-hv__row">
-            <span className="od-hv__label">{f.caption}</span>
-            <span className="od-hv__value">{resolveFieldValue(f, order)}</span>
-            {f.has_override && (
-              <span className="od-hv__badge" title="Customized caption or sequence">Customized</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

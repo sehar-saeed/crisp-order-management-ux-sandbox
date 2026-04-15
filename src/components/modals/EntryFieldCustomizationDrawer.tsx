@@ -235,7 +235,7 @@ export const EntryFieldCustomizationDrawer: React.FC<EntryFieldCustomizationDraw
     resolveEntryFields(txn.masters, txnDraft).filter((c) => c.has_override).length;
 
   return (
-    <Drawer title="Customize Entry Fields" onCloseClick={onClose}>
+    <Drawer title="Customize Fields" onCloseClick={onClose}>
       <div className="ef-drawer" onKeyDown={handleKeyDown}>
         <div className="ef-drawer__top-actions">
           <Button size="S" variant="text" onClick={handleOpenFullPage}>

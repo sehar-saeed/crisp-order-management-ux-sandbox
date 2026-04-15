@@ -216,7 +216,7 @@ export const EntryFieldCustomizationPage: React.FC = () => {
             <Button size="S" variant="text" onClick={handleBack}>
               &larr; Back to Order Edit
             </Button>
-            <Headline as="h1">Customize Entry Fields</Headline>
+            <Headline as="h1">Customize Fields</Headline>
             <p className="ec-page__desc">
               Configure which fields appear on the Order Entry form and Item Transaction table —
               their display order, captions, and visibility.
