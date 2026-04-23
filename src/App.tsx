@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { NotificationContainer } from './components/NotificationContainer';
 import { LandingPage } from './pages/LandingPage';
@@ -11,6 +11,7 @@ import { NewOrderEntryPage } from './pages/orders/NewOrderEntryPage';
 import { SupplierBrowse } from './pages/SupplierBrowse';
 import { SupplierDetail } from './pages/SupplierDetail';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import ProductBrowse from './pages/ProductBrowse';
 import { PageNotFound } from './pages/PageNotFound';
 
 function App() {
@@ -33,9 +34,9 @@ function App() {
               <Route path="/retailers" element={<PlaceholderPage title="Retailer Management" />} />
               <Route path="/retailers/:retailerId" element={<PlaceholderPage title="Retailer Details" />} />
               <Route path="/retailer-suppliers" element={<PlaceholderPage title="Retailer-Supplier Connections" />} />
-              <Route path="/product-hierarchy" element={<PlaceholderPage title="Product Hierarchy" />} />
+              <Route path="/product-hierarchy" element={<Navigate to="/products" replace />} />
               <Route path="/product-categories" element={<PlaceholderPage title="Product Categories" />} />
-              <Route path="/products" element={<PlaceholderPage title="Product Management" />} />
+              <Route path="/products" element={<ProductBrowse />} />
               <Route path="/locations" element={<PlaceholderPage title="Location Management" />} />
               <Route path="/units-of-measure" element={<PlaceholderPage title="Units of Measure" />} />
               <Route path="/users" element={<PlaceholderPage title="User Management" />} />

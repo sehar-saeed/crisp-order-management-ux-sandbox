@@ -52,6 +52,7 @@ export interface EntityBrowseConfig<T, TCreate, TUpdate> {
   customToolbarContent?: ReactNode;
   hideDefaultAddButton?: boolean;
   onCreateClick?: () => void;
+  onBeforeEdit?: (entity: T) => void;
 }
 
 interface ModalState<T> {
@@ -96,17 +97,19 @@ export function EntityBrowse<T, TCreate, TUpdate>(
   const hasPermission = config.permissionCheck();
   if (!hasPermission) return <ForbiddenAccess />;
 
-  const openCreateModal = useCallback(() => {
-    if (config.onCreateClick) {
-      config.onCreateClick();
-      return;
-    }
+  const handleOpenCreateModal = useCallback(() => {
     config.form.resetForm();
     setModal({ isVisible: true, mode: 'create', editingEntity: null });
   }, [config]);
 
+  config.onCreateClick = handleOpenCreateModal;
+
   const openEditModal = useCallback((entity: T) => {
-    config.form.setFormData(entity as unknown as TCreate);
+    if (config.onBeforeEdit) {
+      config.onBeforeEdit(entity);
+    } else {
+      config.form.setFormData(entity as unknown as TCreate);
+    }
     setModal({ isVisible: true, mode: 'edit', editingEntity: entity });
   }, [config]);
 
@@ -122,15 +125,20 @@ export function EntityBrowse<T, TCreate, TUpdate>(
     try {
       if (modal.mode === 'create') {
         await config.management.createEntityAction(config.form.formData);
-      } else {
-        await config.management.updateEntityAction(config.form.formData as unknown as TUpdate);
+      } else if (modal.editingEntity) {
+        const entityId = config.getEntityId(modal.editingEntity);
+        const updateData = {
+          ...config.form.formData,
+          [config.idFieldName]: entityId,
+        } as TUpdate;
+        await config.management.updateEntityAction(updateData);
       }
       closeModal();
       await config.management.loadEntities(false);
     } finally {
       setIsProcessing(false);
     }
-  }, [modal.mode, config, closeModal]);
+  }, [modal.mode, modal.editingEntity, config, closeModal]);
 
   const openDeleteConfirmation = useCallback((entity: T) => {
     setDeleteState({ isVisible: true, entity, isLoading: false });
@@ -203,7 +211,7 @@ export function EntityBrowse<T, TCreate, TUpdate>(
           <Flex spaceBetween>
             <p>{config.pageDescription}</p>
             {!config.hideDefaultAddButton && (
-              <Button onClick={openCreateModal}>Add New {config.entityName}</Button>
+              <Button onClick={handleOpenCreateModal}>Add New {config.entityName}</Button>
             )}
           </Flex>
         </Panel>
@@ -211,7 +219,7 @@ export function EntityBrowse<T, TCreate, TUpdate>(
 
       {!config.pageDescription && !config.hideDefaultAddButton && (
         <div style={{ marginBottom: '1rem' }}>
-          <Button onClick={openCreateModal}>Add New {config.entityName}</Button>
+          <Button onClick={handleOpenCreateModal}>Add New {config.entityName}</Button>
         </div>
       )}
 

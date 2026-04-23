@@ -16,7 +16,6 @@ const navigationItems: NavigationItem[] = [
   { path: '/suppliers', label: 'Suppliers', icon: '\u{1F3ED}' },
   { path: '/retailers', label: 'Retailers', icon: '\u{1F3EA}' },
   { path: '/retailer-suppliers', label: 'Connections', icon: '\u{1F517}' },
-  { path: '/product-hierarchy', label: 'Hierarchy', icon: '\u{1F4CA}' },
   { path: '/product-categories', label: 'Categories', icon: '\u{1F4C1}' },
   { path: '/products', label: 'Products', icon: '\u{1F4E6}' },
   { path: '/locations', label: 'Locations', icon: '\u{1F4CD}' },

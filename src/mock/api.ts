@@ -1,4 +1,7 @@
 import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../types/suppliers';
+import type { Product, CreateProductRequest, UpdateProductRequest } from '../types/products';
+import type { Category, Subcategory } from '../types/categoryHierarchy';
+import type { Department, DepartmentClass, Subclass } from '../types/retailerProductHierarchy';
 import { Retailer } from '../types/retailers';
 import { OrderBrowseRow } from '../types/order';
 import { DataRecord } from '../types/record';
@@ -8,8 +11,18 @@ import { mockRetailers } from './data/retailers';
 import { mockOrders } from './orders/mockOrders';
 import { mockIncomingData, mockClients, mockRetailerOptions, mockSupplierOptions } from './data/incomingData';
 import { mockUsers } from './data/users';
+import { mockProductsSeed } from './data/products';
+import {
+  mockCategories,
+  mockDepartmentClasses,
+  mockDepartments,
+  mockSubcategories,
+  mockSubclasses,
+} from './data/productLookups';
 
 let suppliers = [...mockSuppliers];
+
+let products: Product[] = [...mockProductsSeed];
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -204,4 +217,204 @@ export async function fetchUsers(): Promise<User[]> {
 export async function fetchRetailers(): Promise<Retailer[]> {
   await randomDelay();
   return mockRetailers.map((r) => ({ ...r }));
+}
+
+// ---------------------------------------------------------------------------
+// Products
+// ---------------------------------------------------------------------------
+
+export async function fetchProducts(): Promise<Product[]> {
+  await randomDelay();
+  return products.map((p) => ({ ...p }));
+}
+
+function normalizeVariants(
+  rows: CreateProductRequest['variants'],
+): import('../types/products').ProductVariant[] {
+  return (rows ?? []).map((v) => ({
+    id: v.id && v.id.trim() ? v.id : generateUuid(),
+    sku: v.sku,
+    model: v.model?.trim() || undefined,
+    upc: v.upc ?? '',
+    ean: v.ean ?? '',
+    gtin: v.gtin ?? '',
+    size: v.size,
+    colour: v.colour,
+    style: v.style,
+    description: v.description,
+    basePrice: v.basePrice ?? null,
+    listPrice: v.listPrice ?? null,
+    activeYn: v.activeYn ?? 'Y',
+  }));
+}
+
+export async function createProduct(data: CreateProductRequest): Promise<Product> {
+  await randomDelay();
+  const now = new Date().toISOString();
+  const id = generateUuid();
+  const primaryVariantModel = data.variants?.map((v) => v.model?.trim()).find(Boolean) ?? '';
+  const row: Product = {
+    id,
+    displayName: data.displayName.trim(),
+    parentProductId: data.parentProductId?.trim() || id,
+    variantDimensions: data.variantDimensions ?? { size: true, colour: true, style: true },
+    supplierUid: data.supplierUid,
+    retailerUid: data.retailerUid,
+    departmentUid: data.departmentUid ?? null,
+    classUid: data.classUid ?? null,
+    subclassUid: data.subclassUid ?? null,
+    categoryUid: data.categoryUid ?? null,
+    subcategoryUid: data.subcategoryUid ?? null,
+    model: data.model?.trim() || primaryVariantModel || undefined,
+    sku: data.sku?.trim() ?? '',
+    upc: data.upc ?? '',
+    ean: data.ean ?? '',
+    gtin: data.gtin ?? '',
+    description: data.description ?? '',
+    variants: normalizeVariants(data.variants),
+    basePrice: data.basePrice ?? null,
+    listPrice: data.listPrice ?? null,
+    priceBy: data.priceBy ?? 'UNIT',
+    weightUom: data.weightUom ?? 'LB',
+    weight: data.weight ?? null,
+    dimensionUom: data.dimensionUom ?? 'IN',
+    unitLength: data.unitLength ?? null,
+    unitWidth: data.unitWidth ?? null,
+    unitHeight: data.unitHeight ?? null,
+    casePack: data.casePack ?? null,
+    uom: data.uom ?? 'EA',
+    activeYn: data.activeYn ?? 'Y',
+    createdDate: now,
+    createdBy: data.createdBy ?? 'demo@gocrisp.com',
+    source: data.source ?? 'UI',
+    modifiedDate: now,
+    modifiedBy: data.modifiedBy ?? 'demo@gocrisp.com',
+    deletedYn: data.deletedYn ?? 'N',
+  };
+  products = [...products, row];
+  return { ...row, variants: row.variants.map((v) => ({ ...v })) };
+}
+
+export async function updateProduct(data: UpdateProductRequest): Promise<Product> {
+  await randomDelay();
+  const idx = products.findIndex((p) => p.id === data.id);
+  if (idx === -1) throw new Error(`Product ${data.id} not found`);
+  const prev = products[idx];
+  const now = new Date().toISOString();
+  const primaryVariantModel = data.variants?.map((v) => v.model?.trim()).find(Boolean) ?? '';
+  const updated: Product = {
+    ...prev,
+    displayName: data.displayName.trim(),
+    parentProductId: data.parentProductId?.trim() || prev.parentProductId || data.id,
+    variantDimensions: data.variantDimensions ?? prev.variantDimensions ?? { size: true, colour: true, style: true },
+    supplierUid: data.supplierUid,
+    retailerUid: data.retailerUid,
+    departmentUid: data.departmentUid ?? null,
+    classUid: data.classUid ?? null,
+    subclassUid: data.subclassUid ?? null,
+    categoryUid: data.categoryUid ?? null,
+    subcategoryUid: data.subcategoryUid ?? null,
+    model: data.model?.trim() || primaryVariantModel || prev.model,
+    sku: data.sku?.trim() ?? '',
+    upc: data.upc ?? '',
+    ean: data.ean ?? '',
+    gtin: data.gtin ?? '',
+    description: data.description ?? '',
+    variants: normalizeVariants(data.variants),
+    basePrice: data.basePrice ?? null,
+    listPrice: data.listPrice ?? null,
+    priceBy: data.priceBy ?? 'UNIT',
+    weightUom: data.weightUom ?? 'LB',
+    weight: data.weight ?? null,
+    dimensionUom: data.dimensionUom ?? 'IN',
+    unitLength: data.unitLength ?? null,
+    unitWidth: data.unitWidth ?? null,
+    unitHeight: data.unitHeight ?? null,
+    casePack: data.casePack ?? null,
+    uom: data.uom ?? 'EA',
+    activeYn: data.activeYn ?? 'Y',
+    modifiedDate: now,
+    modifiedBy: data.modifiedBy ?? 'demo@gocrisp.com',
+    deletedYn: data.deletedYn ?? 'N',
+  };
+  products = products.map((p, i) => (i === idx ? updated : p));
+  return { ...updated, variants: updated.variants.map((v) => ({ ...v })) };
+}
+
+export async function deleteProductVariant(productId: string, variantId: string): Promise<Product> {
+  await randomDelay();
+  const idx = products.findIndex((p) => p.id === productId);
+  if (idx === -1) throw new Error(`Product ${productId} not found`);
+  const prev = products[idx];
+  const nextVariants = prev.variants.filter((v) => v.id !== variantId);
+  if (nextVariants.length === 0) {
+    throw new Error('A logical product must have at least one SKU variant.');
+  }
+  const updated: Product = {
+    ...prev,
+    variants: nextVariants,
+    modifiedDate: new Date().toISOString(),
+    modifiedBy: 'demo@gocrisp.com',
+  };
+  products = products.map((p, i) => (i === idx ? updated : p));
+  return { ...updated, variants: updated.variants.map((v) => ({ ...v })) };
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  await randomDelay();
+  products = products.filter((p) => p.id !== id);
+}
+
+export async function fetchDepartments(
+  _clientShortCode: string,
+  retailerUid?: string,
+): Promise<Department[]> {
+  await randomDelay();
+  let rows = mockDepartments;
+  if (retailerUid) rows = rows.filter((d) => d.retailerUid === retailerUid);
+  return rows.map((d) => ({ ...d }));
+}
+
+export async function fetchClasses(
+  _clientShortCode: string,
+  retailerUid?: string,
+  departmentUid?: string,
+): Promise<DepartmentClass[]> {
+  await randomDelay();
+  let rows = mockDepartmentClasses;
+  if (retailerUid) rows = rows.filter((c) => c.retailerUid === retailerUid);
+  if (departmentUid) rows = rows.filter((c) => c.departmentUid === departmentUid);
+  return rows.map((c) => ({ ...c }));
+}
+
+export async function fetchSubclasses(
+  _clientShortCode: string,
+  retailerUid?: string,
+  classUid?: string,
+): Promise<Subclass[]> {
+  await randomDelay();
+  let rows = mockSubclasses;
+  if (retailerUid) rows = rows.filter((s) => s.retailerUid === retailerUid);
+  if (classUid) rows = rows.filter((s) => s.classUid === classUid);
+  return rows.map((s) => ({ ...s }));
+}
+
+export async function fetchCategories(
+  _clientShortCode: string,
+  _supplierUid?: string,
+): Promise<Category[]> {
+  await randomDelay();
+  let rows = mockCategories;
+  if (_supplierUid) rows = rows.filter((c) => c.supplierUid === _supplierUid);
+  return rows.map((c) => ({ ...c }));
+}
+
+export async function fetchSubcategories(
+  _clientShortCode: string,
+  _supplierUid?: string,
+): Promise<Subcategory[]> {
+  await randomDelay();
+  let rows = mockSubcategories;
+  if (_supplierUid) rows = rows.filter((s) => s.supplierUid === _supplierUid);
+  return rows.map((s) => ({ ...s }));
 }

@@ -175,3 +175,47 @@ body {
 .man {
   margin: 0;
 }
+
+/* Product Management grid: parent vs SKU variant rows */
+.ag-theme-alpine .ag-row.pm-row--product {
+  background-color: var(--teal-vivid-95);
+  font-weight: 500;
+}
+
+.ag-theme-alpine .ag-row.pm-row--variant {
+  background-color: var(--color-surface);
+  box-shadow: inset 20px 0 0 var(--teal-vivid-95);
+}
+
+.ag-theme-alpine .ag-row.pm-row--variant .ag-cell:first-of-type {
+  box-shadow: inset 3px 0 0 var(--teal-vivid-50);
+}
+
+/* Clip expand control so it cannot paint over the Product name column */
+.ag-theme-alpine .pm-cell--expand.ag-cell {
+  overflow: hidden;
+}
+
+.ag-theme-alpine .pm-cell--expand .ag-cell-wrapper,
+.ag-theme-alpine .pm-cell--expand .ag-cell-value {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* Parent product name: end-only ellipsis (variant rows use a custom renderer). */
+.ag-theme-alpine .ag-row.pm-row--product .pm-cell--product-name .ag-cell-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  width: 100%;
+}
+
+.ag-theme-alpine .ag-row.pm-row--variant .pm-cell--product-name .ag-cell-value {
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}

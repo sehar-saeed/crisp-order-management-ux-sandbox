@@ -123,6 +123,10 @@
   max-width: 780px;
 }
 
+.ui-modal--extra-wide {
+  max-width: min(1080px, 96vw);
+}
+
 .ui-modal__header {
   display: flex;
   align-items: center;
@@ -328,6 +332,16 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
+}
+
+.ui-select-field__select--error {
+  border-color: var(--color-error);
+}
+
+.ui-select-field__error {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-error);
 }
 
 .ui-select-field__select:focus {

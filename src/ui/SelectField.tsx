@@ -7,6 +7,7 @@ interface SelectFieldProps {
   onChange: (value: string) => void;
   options: { values: string[]; getOptionName?: (v: string) => string };
   disabled?: boolean;
+  error?: string;
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({
@@ -15,11 +16,12 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   onChange,
   options,
   disabled = false,
+  error,
 }) => (
   <div className="ui-select-field">
     <label className="ui-select-field__label">{label}</label>
     <select
-      className="ui-select-field__select"
+      className={`ui-select-field__select${error ? ' ui-select-field__select--error' : ''}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
@@ -30,5 +32,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         </option>
       ))}
     </select>
+    {error && <p className="ui-select-field__error">{error}</p>}
   </div>
 );
