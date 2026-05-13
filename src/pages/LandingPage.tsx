@@ -42,8 +42,12 @@ const StatusBadge: React.FC<{ status: RecentOrder['status'] }> = ({ status }) =>
 );
 
 const featureCards = [
-  { title: 'Incoming Data', description: 'Monitor and manage incoming EDI and uploaded data records', path: '/incoming-data', icon: '📥' },
-  { title: 'View Orders', description: 'Browse, search, and manage purchase orders', path: '/orders', icon: '📋' },
+  {
+    title: 'Orders',
+    description: 'Browse and manage purchase orders, saved column views, and EDI / upload ingestion in one workspace.',
+    path: '/orders',
+    icon: '📋',
+  },
   { title: 'My Commissions', description: 'View your sales commission reports and details', path: null, icon: '💰' },
 ];
 
@@ -70,7 +74,7 @@ export const LandingPage: React.FC = () => {
         </Flex>
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginTop: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginTop: '2rem', maxWidth: '56rem' }}>
         {featureCards.map((card) => (
           <Card
             key={card.title}

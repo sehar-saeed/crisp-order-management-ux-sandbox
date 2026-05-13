@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Panel, Flex, Button, SelectField } from '../../ui';
+import { Flex, Button, SelectField } from '../../ui';
 import type { OrderBrowseRow } from '../../types/order';
 
 export interface OrderFilters {
@@ -88,75 +88,67 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    <Panel className="ob-filter-panel">
-      <div className="ob-filter-panel__header">
-        <span className="ob-filter-panel__title">Filters</span>
-        <button className="ob-filter-panel__close" onClick={onClose} aria-label="Close filters">
-          &times;
-        </button>
-      </div>
-
+    <div className="ob-filter-panel ob-filter-panel--static" aria-label="Filters">
       <div className="ob-filter-panel__body">
-        <SelectField
-          label="Invoice Status"
-          value={draft.invoiceStatus}
-          onChange={(v) => update('invoiceStatus', v)}
-          options={{
-            values: ['', ...invoiceStatuses],
-            getOptionName: (v) => (v === '' ? 'All' : v),
-          }}
-        />
+        <div className="ob-filter-panel__grid">
+          <SelectField
+            label="Invoice Status"
+            value={draft.invoiceStatus}
+            onChange={(v) => update('invoiceStatus', v)}
+            options={{
+              values: ['', ...invoiceStatuses],
+              getOptionName: (v) => (v === '' ? 'All' : v),
+            }}
+          />
 
-        <SelectField
-          label="Shipment Status"
-          value={draft.shipmentStatus}
-          onChange={(v) => update('shipmentStatus', v)}
-          options={{
-            values: ['', ...shipmentStatuses],
-            getOptionName: (v) => (v === '' ? 'All' : v),
-          }}
-        />
+          <SelectField
+            label="Shipment Status"
+            value={draft.shipmentStatus}
+            onChange={(v) => update('shipmentStatus', v)}
+            options={{
+              values: ['', ...shipmentStatuses],
+              getOptionName: (v) => (v === '' ? 'All' : v),
+            }}
+          />
 
-        <SelectField
-          label="Retailer"
-          value={draft.retailer}
-          onChange={(v) => update('retailer', v)}
-          options={{
-            values: ['', ...retailers],
-            getOptionName: (v) => (v === '' ? 'All' : v),
-          }}
-        />
+          <SelectField
+            label="Retailer"
+            value={draft.retailer}
+            onChange={(v) => update('retailer', v)}
+            options={{
+              values: ['', ...retailers],
+              getOptionName: (v) => (v === '' ? 'All' : v),
+            }}
+          />
 
-        <div className="ob-filter-panel__date-group">
-          <label className="ob-filter-panel__date-label">Order Date Range</label>
-          <Flex style={{ gap: '0.5rem' }}>
-            <input
-              type="date"
-              className="ob-filter-panel__date-input"
-              value={draft.dateFrom}
-              onChange={(e) => update('dateFrom', e.target.value)}
-            />
-            <span className="ob-filter-panel__date-sep">to</span>
-            <input
-              type="date"
-              className="ob-filter-panel__date-input"
-              value={draft.dateTo}
-              onChange={(e) => update('dateTo', e.target.value)}
-            />
-          </Flex>
+          <div className="ob-filter-panel__date-group">
+            <label className="ob-filter-panel__date-label">Order Date Range</label>
+            <Flex style={{ gap: '0.5rem' }}>
+              <input
+                type="date"
+                className="ob-filter-panel__date-input"
+                value={draft.dateFrom}
+                onChange={(e) => update('dateFrom', e.target.value)}
+              />
+              <span className="ob-filter-panel__date-sep">to</span>
+              <input
+                type="date"
+                className="ob-filter-panel__date-input"
+                value={draft.dateTo}
+                onChange={(e) => update('dateTo', e.target.value)}
+              />
+            </Flex>
+          </div>
         </div>
       </div>
 
       <div className="ob-filter-panel__footer">
-        <Button size="S" variant="text" onClick={handleClear}>
+        <Button variant="secondary" onClick={handleClear}>
           Clear All
         </Button>
-        <Flex style={{ gap: '0.5rem' }}>
-          <Button size="S" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button size="S" onClick={handleApply}>Apply Filters</Button>
-        </Flex>
+        <Button onClick={handleApply}>Apply Filters</Button>
       </div>
-    </Panel>
+    </div>
   );
 };
 

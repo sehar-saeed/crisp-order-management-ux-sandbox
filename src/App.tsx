@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { NotificationContainer } from './components/NotificationContainer';
 import { LandingPage } from './pages/LandingPage';
-import { IncomingData } from './pages/IncomingData';
 import { OrderBrowsePage } from './pages/orders/OrderBrowsePage';
 import { OrderEditPage } from './pages/orders/OrderEditPage';
 import { ColumnCustomizationPage } from './pages/orders/ColumnCustomizationPage';
@@ -23,7 +22,7 @@ function App() {
           <main style={{ flex: 1, overflowY: 'auto' }}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/incoming-data" element={<IncomingData />} />
+              <Route path="/incoming-data" element={<Navigate to="/orders?view=failed_imports" replace />} />
               <Route path="/orders" element={<OrderBrowsePage />} />
               <Route path="/orders/new" element={<NewOrderEntryPage />} />
               <Route path="/orders/customize-entry-fields" element={<EntryFieldCustomizationPage />} />

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { SavedBrowseView, ViewScope } from '../types/savedView';
 import type { ClientBrowseOverride } from '../types/browseConfig';
+import type { SystemBrowseViewId } from '../components/orders/systemBrowseViews';
 import { seedSavedViews } from '../mock/orders/defaultSavedViews';
 
 /**
@@ -17,10 +18,21 @@ function loadViews(): SavedBrowseView[] {
     const raw = localStorage.getItem(VIEWS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((v: SavedBrowseView) => ({
+          ...v,
+          system_view_id: v.system_view_id ?? 'all',
+          ingestion_column_config: v.ingestion_column_config ?? [],
+        }));
+      }
     }
   } catch { /* corrupt or unavailable */ }
-  return seedSavedViews.map((v) => ({ ...v, column_config: v.column_config.map((c) => ({ ...c })) }));
+  return seedSavedViews.map((v) => ({
+    ...v,
+    system_view_id: v.system_view_id ?? 'all',
+    column_config: v.column_config.map((c) => ({ ...c })),
+    ingestion_column_config: (v.ingestion_column_config ?? []).map((c) => ({ ...c })),
+  }));
 }
 
 function persistViews(views: SavedBrowseView[]) {
@@ -50,7 +62,9 @@ export interface SaveViewInput {
   name: string;
   scope: ViewScope;
   is_default: boolean;
+  system_view_id: SystemBrowseViewId;
   column_config: ClientBrowseOverride[];
+  ingestion_column_config: ClientBrowseOverride[];
 }
 
 export function useSavedViews() {
@@ -90,7 +104,9 @@ export function useSavedViews() {
       owner: CURRENT_USER,
       scope: input.scope,
       is_default: input.is_default,
+      system_view_id: input.system_view_id,
       column_config: input.column_config.map((c) => ({ ...c })),
+      ingestion_column_config: input.ingestion_column_config.map((c) => ({ ...c })),
       created_at: now,
       updated_at: now,
     };
@@ -111,7 +127,7 @@ export function useSavedViews() {
     return newView;
   }, []);
 
-  const updateView = useCallback((viewId: string, updates: Partial<Pick<SavedBrowseView, 'name' | 'column_config' | 'is_default'>>) => {
+  const updateView = useCallback((viewId: string, updates: Partial<Pick<SavedBrowseView, 'name' | 'system_view_id' | 'column_config' | 'ingestion_column_config' | 'is_default'>>) => {
     setViews((prev) => {
       let updated = prev.map((v) => {
         if (v.view_id !== viewId) return v;
@@ -149,13 +165,32 @@ export function useSavedViews() {
    * Returns the column config to load on startup:
    * user's default view → last active view → null (system default).
    */
-  const getStartupConfig = useCallback((): { viewId: string; config: ClientBrowseOverride[] } | null => {
+  const getStartupConfig = useCallback((): {
+    viewId: string;
+    system_view_id: SystemBrowseViewId;
+    column_config: ClientBrowseOverride[];
+    ingestion_column_config: ClientBrowseOverride[];
+  } | null => {
     const userDefault = views.find((v) => v.is_default && v.owner === CURRENT_USER);
-    if (userDefault) return { viewId: userDefault.view_id, config: userDefault.column_config };
+    if (userDefault) {
+      return {
+        viewId: userDefault.view_id,
+        system_view_id: userDefault.system_view_id ?? 'all',
+        column_config: userDefault.column_config,
+        ingestion_column_config: userDefault.ingestion_column_config ?? [],
+      };
+    }
 
     if (activeViewId) {
       const active = views.find((v) => v.view_id === activeViewId);
-      if (active) return { viewId: active.view_id, config: active.column_config };
+      if (active) {
+        return {
+          viewId: active.view_id,
+          system_view_id: active.system_view_id ?? 'all',
+          column_config: active.column_config,
+          ingestion_column_config: active.ingestion_column_config ?? [],
+        };
+      }
     }
 
     return null;

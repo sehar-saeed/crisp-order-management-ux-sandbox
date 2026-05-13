@@ -11,7 +11,6 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { path: '/', label: 'Home', icon: '\u{1F3E0}' },
-  { path: '/incoming-data', label: 'Incoming Data', icon: '\u{1F4E5}' },
   { path: '/orders', label: 'Orders', icon: '\u{1F4CB}' },
   { path: '/suppliers', label: 'Suppliers', icon: '\u{1F3ED}' },
   { path: '/retailers', label: 'Retailers', icon: '\u{1F3EA}' },

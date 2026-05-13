@@ -10,6 +10,8 @@ interface OrderFooterProps {
   totalAmount: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  /** When set, summary line omits currency (e.g. import records). */
+  summaryVariant?: 'orders' | 'records';
 }
 
 function formatCurrency(amount: number): string {
@@ -25,12 +27,21 @@ export const OrderFooter: React.FC<OrderFooterProps> = ({
   totalAmount,
   onPageChange,
   onPageSizeChange,
+  summaryVariant = 'orders',
 }) => (
   <Panel className="ob-footer" style={{ padding: '0.625rem 1rem' }}>
     <Flex spaceBetween style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
       <Flex style={{ gap: '1rem', alignItems: 'center' }}>
         <span className="ob-footer__summary">
-          <strong>{totalOrders}</strong> orders &middot; {formatCurrency(totalAmount)} total
+          {summaryVariant === 'orders' ? (
+            <>
+              <strong>{totalOrders}</strong> orders &middot; {formatCurrency(totalAmount)} total
+            </>
+          ) : (
+            <>
+              <strong>{totalOrders}</strong> import records
+            </>
+          )}
         </span>
       </Flex>
 

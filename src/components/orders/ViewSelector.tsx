@@ -1,25 +1,32 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { SavedBrowseView } from '../../types/savedView';
+import type { SystemBrowseViewId } from './systemBrowseViews';
 
 interface ViewSelectorProps {
+  systemViews: { id: SystemBrowseViewId; label: string }[];
+  activeSystemViewId: SystemBrowseViewId;
   personalViews: SavedBrowseView[];
   sharedViews: SavedBrowseView[];
   activeView: SavedBrowseView | null;
   isModified: boolean;
+  onSelectSystemView: (viewId: SystemBrowseViewId) => void;
   onSelectView: (viewId: string) => void;
-  onSelectSystemDefault: () => void;
-  onSaveNewView: () => void;
+  onSaveCurrent: () => void;
+  onSaveAs: () => void;
   onManageViews: () => void;
 }
 
 export const ViewSelector: React.FC<ViewSelectorProps> = ({
+  systemViews,
+  activeSystemViewId,
   personalViews,
   sharedViews,
   activeView,
   isModified,
+  onSelectSystemView,
   onSelectView,
-  onSelectSystemDefault,
-  onSaveNewView,
+  onSaveCurrent,
+  onSaveAs,
   onManageViews,
 }) => {
   const [open, setOpen] = useState(false);
@@ -44,6 +51,11 @@ export const ViewSelector: React.FC<ViewSelectorProps> = ({
 
   const q = search.trim().toLowerCase();
 
+  const activeSystemView = systemViews.find((v) => v.id === activeSystemViewId) ?? systemViews[0];
+  const filteredSystem = useMemo(
+    () => q ? systemViews.filter((v) => v.label.toLowerCase().includes(q)) : systemViews,
+    [systemViews, q],
+  );
   const filteredPersonal = useMemo(
     () => q ? personalViews.filter((v) => v.name.toLowerCase().includes(q)) : personalViews,
     [personalViews, q],
@@ -58,11 +70,16 @@ export const ViewSelector: React.FC<ViewSelectorProps> = ({
     setOpen(false);
   };
 
+  const handleSelectSystem = (viewId: SystemBrowseViewId) => {
+    onSelectSystemView(viewId);
+    setOpen(false);
+  };
+
   const scopeIcon = activeView
     ? (activeView.scope === 'personal' ? '\u{1F464}' : '\u{1F310}')
     : '\u25A3';
 
-  const displayName = activeView ? activeView.name : 'System Default';
+  const displayName = activeView ? activeView.name : activeSystemView?.label ?? 'All Orders';
 
   return (
     <div className="vs" ref={ref}>
@@ -74,6 +91,11 @@ export const ViewSelector: React.FC<ViewSelectorProps> = ({
       >
         <span className="vs__trigger-icon">{scopeIcon}</span>
         <span className="vs__trigger-label">{displayName}</span>
+        {!activeView && (
+          <span className="vs__scope-badge vs__scope-badge--system">
+            System
+          </span>
+        )}
         {activeView && (
           <span className={`vs__scope-badge vs__scope-badge--${activeView.scope}`}>
             {activeView.scope === 'personal' ? 'Mine' : 'Shared'}
@@ -100,22 +122,25 @@ export const ViewSelector: React.FC<ViewSelectorProps> = ({
             />
           </div>
 
-          {/* ── Current ── */}
-          {!q && (
+          {/* ── System Views ── */}
+          {filteredSystem.length > 0 && (
             <div className="vs__group">
-              <div className="vs__group-title">Current</div>
-              <button
-                className={`vs__row ${!activeView ? 'vs__row--active' : ''}`}
-                onClick={() => { onSelectSystemDefault(); setOpen(false); }}
-                role="option"
-                aria-selected={!activeView}
-              >
-                <span className="vs__row-icon">{'\u25A3'}</span>
-                <span className="vs__row-body">
-                  <span className="vs__row-name">System Default</span>
-                  <span className="vs__row-meta">Base column layout</span>
-                </span>
-              </button>
+              <div className="vs__group-title">System Views</div>
+              {filteredSystem.map((v) => (
+                <button
+                  key={v.id}
+                  className={`vs__row ${!activeView && activeSystemViewId === v.id ? 'vs__row--active' : ''}`}
+                  onClick={() => handleSelectSystem(v.id)}
+                  role="option"
+                  aria-selected={!activeView && activeSystemViewId === v.id}
+                >
+                  <span className="vs__row-icon">{'\u25A3'}</span>
+                  <span className="vs__row-body">
+                    <span className="vs__row-name">{v.label}</span>
+                    <span className="vs__row-meta">Built-in operational view</span>
+                  </span>
+                </button>
+              ))}
             </div>
           )}
 
@@ -166,14 +191,18 @@ export const ViewSelector: React.FC<ViewSelectorProps> = ({
             </div>
           )}
 
-          {q && filteredPersonal.length === 0 && filteredShared.length === 0 && (
+          {q && filteredSystem.length === 0 && filteredPersonal.length === 0 && filteredShared.length === 0 && (
             <div className="vs__empty">No views matching &ldquo;{search}&rdquo;</div>
           )}
 
           {/* ── Bottom Actions ── */}
           <div className="vs__actions">
-            <button className="vs__action-btn" onClick={() => { onSaveNewView(); setOpen(false); }}>
-              <span className="vs__action-icon">+</span> Save current as new view
+            <button className="vs__action-btn" onClick={() => { onSaveCurrent(); setOpen(false); }}>
+              <span className="vs__action-icon">{'\u2713'}</span> Save
+              {isModified && <span className="vs__action-note">unsaved changes</span>}
+            </button>
+            <button className="vs__action-btn" onClick={() => { onSaveAs(); setOpen(false); }}>
+              <span className="vs__action-icon">+</span> Save As
             </button>
             <button className="vs__action-btn" onClick={() => { onManageViews(); setOpen(false); }}>
               <span className="vs__action-icon">{'\u2699'}</span> Manage views
